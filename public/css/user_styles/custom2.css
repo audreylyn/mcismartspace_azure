@@ -1,0 +1,201 @@
+.nav.side-menu>li>a {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-size: 0.8rem;
+    justify-content: center;
+    text-decoration: none;
+    padding: 12px 15px;
+    flex-wrap: wrap;
+}
+
+.nav.side-menu>li>a .menu-text {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.nav.side-menu>li>a .fa-chevron-down {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+/* For collapsed state */
+.left_col.collapsed .menu-text {
+    display: flex;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease, width 0.3s ease;
+}
+
+.left_col:not(.collapsed) .menu-text {
+    opacity: 1;
+    visibility: visible;
+    width: auto;
+}
+
+/* Modern Sleek Sidebar Styling */
+.left_col {
+    background: #15432f;
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', 'Roboto', sans-serif;
+}
+
+.site_title {
+    background: #15432f;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.site_title:hover {
+    background: #15432f;
+}
+
+/* Logo and Title */
+.navbar.nav_title {
+    background: #15432f;
+}
+
+/* Menu Items */
+.nav.side-menu>li>a {
+    padding: 14px 18px;
+    margin: 4px 0;
+}
+
+.nav.side-menu>li>a .icon {
+    margin-right: 12px;
+}
+
+.nav.side-menu>li>a .icon svg {
+    stroke-width: 1.8;
+}
+
+.nav.side-menu>li>a .menu-text {
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+
+.nav.side-menu>li.active>a {
+    background: linear-gradient(145deg, #C9A000, #f2e2a2) !important;
+    color: #15432f;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+}
+
+.nav.side-menu>li.active>a:hover {
+    color: #15432f !important;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+}
+
+.nav.side-menu>li.active>a svg {
+    stroke: #15432f;
+}
+
+/* Chevron Styling */
+.fa.fa-chevron-down {
+    font-size: 12px;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.nav.side-menu>li.active>a .fa.fa-chevron-down {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+.nav.child_menu>li>a:hover {
+    color: white;
+    border-left: 2px solid rgb(234, 197, 46);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Active Menu Items (like "Add Admins" in yellow) */
+.nav.side-menu>li.highlighted>a {
+    background: linear-gradient(to right, #f2e2a2, #C9A000);
+    color: #15432f;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav.side-menu>li.highlighted>a svg {
+    stroke: #15432f;
+}
+
+.nav.side-menu>li.active {
+    border-right: 5px solid rgb(193, 157, 10);
+}
+
+/* Green Highlight for "Manage Rooms" */
+.nav.side-menu>li.active-special>a {
+    background: linear-gradient(to right, #f2e2a2, #C9A000);
+    color: #15432f;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Collapsed sidebar state */
+.left_col.collapsed .nav.side-menu>li>a {
+    padding: 14px 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.left_col.collapsed .site_title span {
+    display: none;
+}
+
+.smart:hover {
+    background: #15432f;
+    color: rgb(227, 194, 65);
+}
+
+/* New sleek modern header with smaller logo next to title */
+.logo-container {
+    margin-left: 3px;
+    padding: 15px 7px;
+    background: #15432f;
+}
+
+.site-branding {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    margin-left: 5px;
+}
+
+
+.meyclogo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    margin-right: 12px;
+    transition: transform 0.3s ease;
+}
+
+.title-text {
+    color: #f2e2a2;
+    font-weight: 500;
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+

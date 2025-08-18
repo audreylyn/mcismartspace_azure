@@ -1,0 +1,666 @@
+/* Profile Edit Page Styles */
+
+
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.alert-success {
+    background-color: #e7f7ed;
+    border: 1px solid #c3e6d1;
+    color: #0a4d2e;
+    transition: opacity 1s ease-out;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: 1px solid #f5c2c7;
+    color: #dc3545;
+}
+
+.alert i {
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.profile-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.profile-form {
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 250px;
+    padding: 0 15px;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.input-with-icon input:focus {
+    border-color: #0a4d2e;
+    outline: none;
+}
+
+.edit-btn {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    color: #0a4d2e;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.edit-btn i {
+    font-size: 14px;
+}
+
+.edit-btn.save-mode {
+    color: #0a4d2e;
+}
+
+.verified-badge {
+    position: absolute;
+    right: 12px;
+    background: #e7f7ed;
+    color: #0a4d2e;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.save-btn {
+    background: #0a4d2e;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-btn:hover {
+    background: #083a24;
+}
+
+.profile-section {
+    padding: 30px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.profile-section h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.profile-section p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.change-password-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.change-password-btn:hover {
+    background: #e0e0e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 12px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        margin: 0;
+    }
+    
+    .form-group {
+        min-width: auto;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+    
+    .profile-form {
+        padding: 15px;
+    }
+    
+    .input-with-icon input {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    .card-header {
+        padding: 15px;
+    }
+    
+    .bold-personal {
+        font-size: 18px;
+    }
+    
+    .profile-card {
+        margin-bottom: 20px;
+    }
+    
+    .security-section {
+        padding: 15px;
+    }
+    
+    .security-actions {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .security-actions .btn {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .btn-secondary, .security-actions .btn-danger {
+        width: 100%;
+        min-height: 44px;
+        padding: 8px 12px;
+    }
+    
+    .verified-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    #deleteAccountModal .alert-actions {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    #deleteAccountModal .alert-actions .btn-action {
+        flex: 1;
+        width: 48%;
+        margin: 0;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .profile-container {
+        padding: 10px;
+    }
+    
+    .profile-card {
+        border-radius: 8px;
+    }
+    
+    .admin-notice {
+        font-size: 13px;
+        padding: 10px;
+    }
+    
+    .form-group label {
+        font-size: 13px;
+        margin-bottom: 5px;
+    }
+    
+    .input-with-icon input {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    .card-header p {
+        font-size: 13px;
+    }
+    
+    .security-section {
+        padding: 15px;
+    }
+    
+    .card-header {
+        padding: 15px;
+    }
+    
+    .bold-personal {
+        font-size: 18px;
+    }
+    
+    .btn-secondary, .security-actions .btn-danger {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+    
+    .fa-lock, .fa-trash {
+        margin-right: 5px !important;
+        font-size: 12px;
+    }
+    
+    #deleteAccountModal .alert-actions {
+        flex-direction: row;
+        gap: 8px;
+    }
+    
+    #deleteAccountModal .alert-actions .btn-action {
+        font-size: 13px;
+        min-height: 44px;
+        padding: 8px 6px;
+    }
+}
+
+/* Password Modal Styles */
+.password-form-group {
+    margin-bottom: 1.25rem;
+}
+
+.password-form-group label {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.password-form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.password-form-group input:focus {
+    border-color: #0a4d2e;
+    outline: none;
+}
+
+.password-hint {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Modal Styles */
+#changePasswordModal .modal-dialog {
+    max-width: 450px;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#changePasswordModal .modal-content {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.alert-style-modal {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Add this new style for the password change modal header */
+#changePasswordModal .alert-style-modal h5 {
+    background: linear-gradient(to right, #f0f9ff, #fff1e6);
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    padding: 1.5rem;
+    border-radius: 8px 8px 0 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Adjust the existing h5 style for other modals */
+.alert-style-modal h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    padding-right: 20px;
+}
+
+.alert-style-modal .close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.25rem;
+    color: #9ca3af;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+}
+
+.alert-style-modal .close:hover {
+    opacity: 1;
+}
+
+.alert-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.alert-actions .btn-action {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.alert-actions .btn-secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+}
+
+.alert-actions .btn-secondary:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.alert-actions .btn-primary {
+    background-color: #0a4d2e;
+    color: white;
+    border: none;
+}
+
+.alert-actions .btn-primary:hover {
+    background-color: #083a24;
+}
+
+#changePasswordModal.show {
+    display: block;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Security Actions Layout */
+.security-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+/* Delete Account Button */
+.delete-account-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #f8d7da;
+    color: #dc3545;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.delete-account-btn:hover {
+    background: #f5c2c7;
+    color: #bb2d3b;
+}
+
+/* Delete Modal Styling */
+.delete-modal .delete-warning {
+    color: #dc3545;
+    font-weight: 500;
+    background-color: #f8d7da;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.alert-actions .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.alert-actions .btn-danger:hover {
+    background-color: #bb2d3b;
+}
+
+/* For session-based messages */
+.alert-auto-fade {
+    animation: fadeOut 1s ease-out 3s forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        display: none;
+    }
+}
+
+.bg-modal {
+    background: linear-gradient(to right, #f0f9ff, #fff1e6);
+}
+
+
+/* Modal Error Message with fade effect */
+.modal-error-message {
+    background-color: #f8d7da;
+    color: #dc3545;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 1s ease-out;
+}
+
+.modal-error-message.fade-out {
+    opacity: 0;
+}
+
+/* Card Header Styling */
+.card-header {
+    padding: 20px 30px;
+    border-radius: 12px 12px 0 0;
+}
+
+/* Bold Personal Information Title */
+.bold-personal {
+    font-weight: 700;
+    font-size: 22px;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+/* Account Security Section */
+.security-section {
+    padding: 20px;
+}
+
+.security-section h3 {
+    font-weight: 600;
+    font-size: 20px;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+/* Delete Account Modal Header */
+#deleteAccountModal .alert-style-modal h5 {
+    background: linear-gradient(to right, #fff1e6, #ffebeb);
+    margin: -1.5rem -1.5rem 1rem -1.5rem;
+    padding: 1.5rem;
+    border-radius: 8px 8px 0 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #b91c1c;
+}
+
+/* Button Styling */
+.btn-action {
+    transition: all 0.3s ease;
+}
+
+.btn-action.btn-primary {
+    box-shadow: 0 2px 5px rgba(10, 77, 46, 0.2);
+}
+
+.btn-action.btn-primary:hover {
+    box-shadow: 0 3px 8px rgba(10, 77, 46, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-action.btn-danger {
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.2);
+}
+
+.btn-action.btn-danger:hover {
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Improve Modal Appearance */
+.modal-dialog {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth Transitions */
+.modal-content, .alert-style-modal, .profile-card {
+    transition: all 0.3s ease;
+}
+
+/* Security Section Button Styling */
+.security-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: normal;
+    text-align: center;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.security-actions .btn-danger {
+    background-color: #f8d7da;
+    color: #dc3545;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    white-space: normal;
+    text-align: center;
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-buttons {
+    display: flex;
+    align-items: center;
+    justify-self: flex-end;
+}
+

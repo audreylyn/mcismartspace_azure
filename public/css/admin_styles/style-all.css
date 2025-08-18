@@ -1,0 +1,187 @@
+
+/* Style the logo and text container */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+/* Style the logo image */
+.meyclogo {
+    width: 40px;
+    height: auto;
+    margin-right: 10px;
+}
+
+/* Sidebar Layout */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #1A4D3A;
+    /* Deep green */
+    color: white;
+    width: 240px;
+    height: 100vh;
+    padding: 20px;
+    box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Aside Tools Section (Logo & Title) */
+.aside-tools {
+    background: #1A4D3A;
+    /* Same deep green as sidebar */
+    padding: 20px;
+}
+
+.aside-tools .logo {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+}
+
+.aside-tools .logo img {
+    width: 40px;
+    margin-right: 10px;
+}
+
+.aside-tools .logo p {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    color: white;
+}
+
+/* Menu Layout */
+.menu-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.menu-list li {
+    margin: 10px 0;
+}
+
+.menu-list a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+}
+
+.menu-list .icon {
+    margin-right: 10px;
+}
+
+.menu-list .menu-item-label {
+    font-size: 16px;
+}
+
+.menu-label {
+    font-size: 16px;
+    margin-top: 30px;
+    color: #105738;
+}
+
+/* Margin for content */
+.mx-4 {
+    margin-top: 20px;
+}
+
+/* Button background color and hover states with gradients */
+.bg-yellow-500 {
+    background: linear-gradient(145deg, #f2e2a2, #C9A000) !important;
+    /* Gradient from Light Yellow to Dark Yellow */
+}
+
+.hover\:bg-yellow-600:hover {
+    background: linear-gradient(145deg, #C9A000, #f2e2a2) !important;
+    /* Gradient from Dark Yellow to Light Yellow */
+}
+
+/* Active state with gradient background */
+.menu-list li.active>a {
+    background: linear-gradient(145deg, #f2e2a2, #C9A000) !important;
+    color: #105738;
+    /* Text color when active */
+    font-size: 16px;
+    /* Adjust font size */
+    transition: background 0.3s ease, font-size 0.3s ease;
+    /* Smooth transition for background and font size */
+}
+
+/* General hover effect for all menu items */
+.menu-list li>a:hover {
+    background: #f2e2a2;
+    /* Gradient on hover */
+    color: #105738;
+    /* Text color on hover */
+    font-size: 17px;
+    /* Slightly increase font size on hover */
+    transition: background 0.3s ease, font-size 0.3s ease;
+    /* Smooth transition */
+}
+
+.s-b {
+    --tw-gradient-from: #1b4d1b;
+    --tw-gradient-to: #4e9f4e;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+
+}
+
+.s-b_icons {
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+
+.bg-gradient-to-tl.s-b {
+    background-image: linear-gradient(to top left, #1b4d1b, #4e9f4e);
+}
+
+/* Timeless Yellow Gradient with Changed Direction */
+.s-b-yellow {
+    --tw-gradient-from: #f2e2a2;
+    /* Light Yellow */
+    --tw-gradient-to: #C9A000;
+    /* Dark Yellow */
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.bg-gradient-to-br.s-b-yellow {
+    background-image: linear-gradient(to bottom right, #f2e2a2, #C9A000);
+}
+
+.ti {
+    font-size: 23px;
+}
+
+/* Default styles for larger screens */
+.custom-img {
+    width: 220px;
+    /* Fixed width for larger screens */
+    max-width: 100%;
+    /* Ensure the image doesn’t overflow its container */
+}
+
+.modal {
+    display: none;
+}
+
+.modal.is-active {
+    display: flex;
+}
+
+/* Media query for mobile screens */
+@media (max-width: 768px) {
+    .custom-img {
+        width: 100%;
+        /* The image will stretch to fill the container on mobile */
+    }
+}
+
+

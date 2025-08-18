@@ -1,0 +1,218 @@
+
+/* Modern QR Generator Styles */
+.main-container {
+    padding: 1.5rem 2rem;
+    background-color: #f8fafc;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.qr-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.qr-panel {
+    background: white;
+    margin-top: 15px;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.qr-panel:hover {
+    transform: none;
+}
+
+.qr-panel-header {
+    background: #0f4228;
+    color: white;
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.3px;
+    border-radius: 10px 10px 0 0;
+}
+
+.qr-panel-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+#qrcode {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding: 10px 0;
+    background: white;
+    max-width: 100%;
+    border: none;
+}
+
+#qrcode img {
+    max-width: 100%;
+    height: auto;
+}
+
+#qr-info {
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    margin-bottom: 15px;
+    background-color: transparent;
+    border: none;
+}
+
+#qr-info p {
+    margin: 5px 0;
+}
+
+#qr-info .equipment-id {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-top: 3px;
+}
+
+#qr-info .location {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+#downloadBtn,
+.genQrbtn {
+    background-color: #0f4228;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+#downloadBtn:hover {
+    background-color: #0a3320;
+}
+
+
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 0.5rem;
+}
+
+.form-select,
+.form-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus,
+.form-input:focus {
+    outline: none;
+    border-color: #0f4228;
+    box-shadow: 0 0 0 3px rgba(15, 66, 40, 0.1);
+}
+
+.form-select {
+    padding-right: 30px;
+    background-position: right 10px center;
+}
+
+.custom-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.divider {
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    font-weight: 500;
+}
+
+.divider::before {
+    margin-right: 0.75rem;
+}
+
+.divider::after {
+    margin-left: 0.75rem;
+}
+
+/* Button Styles */
+.btn {
+    padding: 0.6rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-radius: 6px;
+}
+
+.btn-primary {
+    max-width: 300px;
+}
+
+@media (max-width: 1200px) {
+    .qr-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: 1.5rem;
+    }
+
+    .custom-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .qr-panel-body {
+        padding: 20px;
+    }
+}

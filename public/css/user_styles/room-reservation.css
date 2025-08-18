@@ -1,0 +1,698 @@
+/* Room Reservation Modern Styles */
+:root {
+  --primary-color: #36b37e;
+  --primary-hover: #2f9e6d;
+  --secondary-color: #f5f7fa;
+  --border-color: #e1e7ef;
+  --text-color: #2d3748;
+  --text-muted: #718096;
+  --success-color: #36b37e;
+  --warning-color: #ffab00;
+  --error-color: #e53e3e;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  --transition: all 0.2s ease;
+}
+
+/* Alert Messages */
+.alert {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.alert-success {
+  background-color: rgba(54, 179, 126, 0.1);
+  color: var(--success-color);
+  border: 1px solid rgba(54, 179, 126, 0.2);
+}
+
+.alert-danger {
+  background-color: rgba(229, 62, 62, 0.1);
+  color: var(--error-color);
+  border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Title */
+.page-title {
+  margin-bottom: 2rem;
+}
+
+.page-title h3 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.page-title p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* Tabs */
+.reservation-tabs {
+  display: flex;
+  margin-bottom: 1.5rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.tab-item:hover {
+  background-color: var(--secondary-color);
+}
+
+.tab-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Reservation Card */
+.reservation-card {
+  overflow: hidden;
+}
+
+.reservation-card-header {
+  background: linear-gradient(to right, #f0f9ff, #fff1e6);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reservation-card-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.reservation-card-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* My Requests Styles */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+}
+
+.request-filters {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  width: 200px;
+  font-size: 0.9rem;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+}
+
+.search-container input {
+  padding-right: 2.5rem;
+}
+
+.search-container i {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.requests-list {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.request-item {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  transition: var(--transition);
+}
+
+.request-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.request-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.request-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.request-status i {
+  margin-right: 0.35rem;
+}
+
+.status-pending {
+  background-color: rgba(255, 171, 0, 0.15);
+  color: var(--warning-color);
+}
+
+.status-approved {
+  background-color: rgba(54, 179, 126, 0.15);
+  color: var(--success-color);
+}
+
+.status-rejected {
+  background-color: rgba(229, 62, 62, 0.15);
+  color: var(--error-color);
+}
+
+.request-body {
+  color: var(--text-muted);
+}
+
+.request-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.info-label i {
+  margin-right: 0.3rem;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.rejection-reason {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.reason-label {
+  display: block;
+  font-weight: 600;
+  color: var(--error-color);
+  margin-bottom: 0.5rem;
+}
+
+.reason-text {
+  background-color: rgba(229, 62, 62, 0.05);
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.no-requests {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* Step Progress */
+.step-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+.step-progress::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e4b22b; /* Yellow line */
+  z-index: 1;
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 33.33%;
+  position: relative;
+  z-index: 2;
+}
+.step-circle {
+  width: 60px;
+  height: 60px;
+  background-color: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #757575;
+  transition: all 0.2s ease;
+}
+.step-item.active .step-circle {
+  background-color: #0f4228; /* Dark green */
+  border-color: #0f4228; /* Dark green */
+  color: white;
+}
+.step-item.completed .step-circle {
+  background-color: #0f4228; /* Dark green */
+  border-color: #0f4228; /* Dark green */
+  color: white;
+}
+.step-title {
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 0.25rem;
+}
+.step-subtitle {
+  color: #757575;
+  font-size: 0.875rem;
+}
+.step-item.active .step-title {
+  color: #0f4228; /* Dark green */
+}
+/* Step Content */
+.step-content {
+  display: none;
+}
+
+.step-content.active {
+  display: block;
+}
+
+/* Form Fields */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--text-color);
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(54, 179, 126, 0.1);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+textarea.form-control {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.form-hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.form-error {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--error-color);
+}
+
+/* Search and Filter Controls */
+.search-filter-container {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#searchRooms {
+  height: 48px;
+  border-radius: 6px;
+  padding-left: 40px;
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 10;
+}
+
+.search-container {
+  position: relative;
+}
+
+/* Room Cards for Selection */
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.room-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.building-name {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.room-status {
+  padding: 0.5rem 0.75rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-available {
+  background-color: rgba(54, 179, 126, 0.15);
+  color: var(--success-color);
+}
+
+.room-details {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.room-detail-item {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.room-detail-item i {
+  margin-right: 0.5rem;
+}
+
+/* Filter Pills */
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-pill {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 99px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-pill:hover {
+  background-color: var(--secondary-color);
+}
+
+.filter-pill.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+/* Date Time Picker */
+.date-input, .time-input {
+  height: 48px;
+  border-radius: 6px;
+  padding-left: 2.5rem;
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+  position: relative;
+}
+
+.date-input-icon, .time-input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 1;
+}
+
+.date-input-container, .time-input-container {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+}
+
+.btn-next, .btn-submit {
+  background: linear-gradient(145deg, #d1a300, #9e8700); /* Gold gradient from your code */
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-next:hover, .btn-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* For the Back button with gold theme */
+.btn-back {
+  background: transparent;
+  color: #9e8700; /* Gold color */
+  border: 1px solid #9e8700;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background-color: rgba(158, 135, 0, 0.1);
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .step-progress {
+    display: none;
+  }
+  
+  .step-item {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .step-progress::before {
+    display: none;
+  }
+  
+  .action-buttons {
+    gap: 1rem;
+    flex-direction: row;
+  }
+  
+  .btn-back, .btn-next, .btn-submit {
+    width: 100%;
+  }
+  
+  .request-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .request-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .request-status {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Time Selection Styles */
+.time-input-container select.time-input {
+    height: 48px;
+    border-radius: 6px;
+    padding-left: 2.5rem;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+    background-color: white;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.time-input-container select.time-input:focus {
+    outline: none;
+    border-color: #d1a300;
+    box-shadow: 0 0 0 2px rgba(209, 163, 0, 0.1);
+}
+
+/* Duration Input Styles */
+.duration-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.duration-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.duration-input-group input {
+    width: 80px;
+    height: 44px;
+    border-radius: 6px;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+    text-align: center;
+    background-color: white;
+}
+
+.duration-input-group input:focus {
+    outline: none;
+    border-color: #d1a300;
+    box-shadow: 0 0 0 2px rgba(209, 163, 0, 0.1);
+}
+
+.duration-label {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0 0.5rem 0 0;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Number input arrows styling */
+.duration-input-group input[type="number"]::-webkit-inner-spin-button,
+.duration-input-group input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 28px;
+    cursor: pointer;
+}
+
+.duration-input-group input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.duration-input-group input[type="number"]:hover::-webkit-inner-spin-button,
+.duration-input-group input[type="number"]:hover::-webkit-outer-spin-button {
+    opacity: 1;
+} 
+
+

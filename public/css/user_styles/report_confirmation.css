@@ -1,0 +1,194 @@
+body {
+    background-color: #0a3320;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.right_col {
+    background: transparent;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 15px;
+}
+
+.confirmation-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.confirmation-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    padding: 2.5rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(15, 66, 40, 0.1);
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-icon i {
+    font-size: 2.5rem;
+    color: #0f4228;
+}
+
+.confirmation-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f4228;
+    margin-bottom: 0.75rem;
+}
+
+.confirmation-message {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.btn-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    background-color: #0f4228;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(15, 66, 40, 0.1);
+}
+
+.btn-primary:hover {
+    background-color: #13503a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(15, 66, 40, 0.15);
+}
+
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+.reference-number {
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem auto;
+    max-width: 250px;
+    border: 1px dashed rgba(15, 66, 40, 0.3);
+    transition: all 0.3s ease;
+}
+
+.reference-number:hover {
+    border-color: #0f4228;
+    background-color: #f0f9f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.reference-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.reference-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #0f4228;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+    .confirmation-container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
+
+    .confirmation-card {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.confirmation-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.success-svg {
+    animation: checkmark 0.8s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+@keyframes checkmark {
+    0% {
+        stroke-dashoffset: 100;
+        opacity: 0;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+.success-svg path,
+.success-svg polyline {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: dash 1s ease-in-out forwards;
+    animation-delay: 0.2s;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+    }
+}

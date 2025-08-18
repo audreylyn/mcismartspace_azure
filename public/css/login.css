@@ -1,0 +1,166 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    height: 100vh;
+    display: flex;
+    background-color: #f8f9fa;
+}
+
+.login-image {
+    flex: 1.2;
+    background-image: linear-gradient(rgba(40, 167, 69, 0.3), rgba(40, 167, 69, 0.3)),
+        url('../assets/school.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 3rem;
+}
+
+.image-overlay-text {
+    color: white;
+    font-size: 2rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.login-form {
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem;
+    background: white;
+    box-shadow: -20px 0 40px rgba(0, 0, 0, 0.1);
+}
+
+.branding {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.logo {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+}
+
+.brand-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #28a745;
+    margin-bottom: 0.5rem;
+}
+
+.college-name {
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.form-container {
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 1rem;
+    border: 1.5px solid #e9ecef;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #28a745;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.1);
+}
+
+.form-control::placeholder {
+    color: #adb5bd;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 1rem;
+    background: #28a745;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    background: #218838;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+    .login-image {
+        flex: 1;
+    }
+
+    .login-form {
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+
+    .login-image {
+        height: 240px;
+        padding: 1.5rem;
+    }
+
+    .login-form {
+        padding: 2rem;
+        box-shadow: none;
+    }
+
+    .branding {
+        margin-bottom: 2rem;
+    }
+
+    .brand-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-form {
+        padding: 1.5rem;
+    }
+
+    .form-container {
+        max-width: 100%;
+    }
+}
