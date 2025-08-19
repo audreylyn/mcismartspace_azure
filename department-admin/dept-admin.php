@@ -644,6 +644,22 @@ while ($row = $result->fetch_assoc()) {
         .issues-header h3 {
             color: var(--primary-color);
         }
+        
+        /* Dropdown fix */
+        .navbar-item.dropdown.is-active .navbar-dropdown {
+            display: block;
+        }
+        
+        .navbar-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 20;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+        }
     </style>
 </head>
 
@@ -673,8 +689,8 @@ while ($row = $result->fetch_assoc()) {
             <div class="navbar-menu" id="navbar-menu">
                 <div class="navbar-end">
                     <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link">
-                            <span>Hello, <?php echo $_SESSION['first_name']; ?></span>
+                        <a class="navbar-link" onclick="toggleDropdown(this)">
+                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
                             <span class="icon">
                                 <i class="mdi mdi-chevron-down"></i>
                             </span>
@@ -892,7 +908,7 @@ while ($row = $result->fetch_assoc()) {
 
     <script type="text/javascript" src="../public/js/main.min.js"></script>
     <script>
-        // Toggle dropdown menu
+        // Toggle dropdown menu for sidebar
         function toggleIcon(el) {
             el.classList.toggle("active");
             var icon = el.querySelector(".toggle-icon i");
@@ -912,9 +928,35 @@ while ($row = $result->fetch_assoc()) {
                 }
             }
         }
+        
+        // Toggle dropdown menu for navbar
+        function toggleDropdown(el) {
+            const dropdown = el.closest('.dropdown');
+            dropdown.classList.toggle('is-active');
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdowns = document.querySelectorAll('.dropdown.is-active');
+            dropdowns.forEach(function(dropdown) {
+                // If the click is outside the dropdown
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('is-active');
+                }
+            });
+        });
 
         // Initialize charts once the DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize sidebar dropdowns
+            const dropdowns = document.querySelectorAll('a.dropdown');
+            dropdowns.forEach(function(dropdown) {
+                const submenu = dropdown.nextElementSibling;
+                if (submenu) {
+                    submenu.style.display = "none";
+                }
+            });
+            
             // Room Status Chart - Updated colors to match site theme
             const roomStatusData = {
                 pending: <?php echo isset($room_stats['pending']) ? $room_stats['pending'] : 0; ?>,

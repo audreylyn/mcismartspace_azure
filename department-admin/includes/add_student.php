@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate and sanitize input
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
-    $department = trim($_POST['department']);
+    $department = $_SESSION['department'] ?? ''; // Get department from session
     $program = trim($_POST['program']);
     $yearsection = trim($_POST['yearsection']);
     $email = trim($_POST['email']);
@@ -94,10 +94,12 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     exit;
 }
 
-// Fetch all students created by the logged-in admin
+// Fetch all students created by the logged-in admin and in the same department
 $admin_id = $_SESSION['user_id']; // Get the logged-in admin's ID
-$sql = "SELECT StudentId, FirstName, LastName, Department, Program, YearSection, Email FROM student WHERE AdminID = ?";
+$admin_department = $_SESSION['department'] ?? '';
+
+$sql = "SELECT StudentId, FirstName, LastName, Department, Program, YearSection, Email FROM student WHERE AdminID = ? AND Department = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $admin_id);
+$stmt->bind_param("is", $admin_id, $admin_department);
 $stmt->execute();
 $result = $stmt->get_result();

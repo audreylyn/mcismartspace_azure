@@ -64,12 +64,12 @@ if (isset($_POST['importSubmit'])) {
         }
 
         // Redirect back to the import page
-        header("Location: ../test.php");
+        header("Location: ../reg_add_admin.php");
         exit();
     } else {
         // Handle the case where the uploaded file is empty
         $_SESSION['error_message'] = "Uploaded file is empty.";
-        header("Location: ../test.php");
+        header("Location: ../reg_add_admin.php");
         exit();
     }
 }

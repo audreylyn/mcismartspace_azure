@@ -82,6 +82,15 @@ $filterConditions = [];
 $params = [];
 $types = '';
 
+// Department-Based Access Control
+$admin_department = $_SESSION['department'] ?? '';
+if (!empty($admin_department)) {
+    $filterConditions[] = "(s.Department = ? OR t.Department = ?)";
+    $params[] = $admin_department;
+    $params[] = $admin_department;
+    $types .= 'ss';
+}
+
 if ($statusFilter != 'all') {
     $filterConditions[] = "ei.status = ?";
     $params[] = $statusFilter;

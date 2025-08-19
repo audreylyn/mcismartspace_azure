@@ -14,9 +14,14 @@ if (session_status() == PHP_SESSION_NONE) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['approve_request'])) {
         $requestId = intval($_POST['request_id']);
-        $sql = "UPDATE room_requests SET Status = 'approved' WHERE RequestID = ?";
+        $adminId = $_SESSION['user_id'];
+        $adminFirstName = $_SESSION['firstname'];
+        $adminLastName = $_SESSION['lastname'];
+        
+        // Update request with approved status and admin info
+        $sql = "UPDATE room_requests SET Status = 'approved', ApprovedBy = ?, ApproverFirstName = ?, ApproverLastName = ? WHERE RequestID = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $requestId);
+        $stmt->bind_param("isss", $adminId, $adminFirstName, $adminLastName, $requestId);
 
         if ($stmt->execute()) {
             $_SESSION['success_message'] = "Request approved successfully";
@@ -27,10 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (isset($_POST['reject_request'])) {
         $requestId = intval($_POST['request_id']);
         $rejectionReason = trim($_POST['rejection_reason']);
+        $adminId = $_SESSION['user_id'];
+        $adminFirstName = $_SESSION['firstname'];
+        $adminLastName = $_SESSION['lastname'];
 
-        $sql = "UPDATE room_requests SET Status = 'rejected', RejectionReason = ? WHERE RequestID = ?";
+        $sql = "UPDATE room_requests SET Status = 'rejected', RejectionReason = ?, RejectedBy = ?, RejecterFirstName = ?, RejecterLastName = ? WHERE RequestID = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("si", $rejectionReason, $requestId);
+        $stmt->bind_param("sisss", $rejectionReason, $adminId, $adminFirstName, $adminLastName, $requestId);
 
         if ($stmt->execute()) {
             $_SESSION['success_message'] = "Request rejected successfully";
@@ -59,6 +67,74 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="../public/css/admin_styles/style-all.css">
     <link rel="stylesheet" href="../public/css/admin_styles/form_2.css">
     <link rel="stylesheet" href="../public/css/admin_styles/room_approval.css">
+    
+    <style>
+        /* Additional modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .modal-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        /* Styles for the filter buttons */
+        #clearFilters {
+            cursor: pointer;
+            padding: 8px 16px;
+            background-color: #f2f2f2;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        #clearFilters:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
 
 </head>
 
@@ -90,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="navbar-item dropdown has-divider">
                         <a class="navbar-link">
 
-                            <span>Hello, <?php echo $_SESSION['first_name']; ?></span>
+                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
                             <span class="icon">
                                 <i class="mdi mdi-chevron-down"></i>
                             </span>
@@ -264,29 +340,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </select>
                         </div>
                         <div class="filter-item">
-                            <label class="filter-label">Building</label>
-                            <select id="buildingFilter" class="filter-control">
-                                <option value="">All Buildings</option>
-                                <?php
-                                // Get unique buildings
-                                $buildingSql = "SELECT DISTINCT b.building_name 
-                                               FROM room_requests rr
-                                               LEFT JOIN rooms r ON rr.RoomID = r.id
-                                               LEFT JOIN buildings b ON r.building_id = b.id
-                                               WHERE b.building_name IS NOT NULL
-                                               ORDER BY b.building_name";
-                                $buildingResult = $conn->query($buildingSql);
-                                if ($buildingResult && $buildingResult->num_rows > 0) {
-                                    while ($buildingRow = $buildingResult->fetch_assoc()) {
-                                        echo '<option value="' . htmlspecialchars($buildingRow['building_name']) . '">' .
-                                            htmlspecialchars($buildingRow['building_name']) .
-                                            '</option>';
-                                    }
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="filter-item">
                             <label class="filter-label">Priority</label>
                             <select id="priorityFilter" class="filter-control">
                                 <option value="">All Priorities</option>
@@ -303,95 +356,101 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <!-- Room Request Cards -->
                     <div id="requestsContainer">
                         <?php
-                        // Query to get room requests with room and user info
-                        $sql = "SELECT rr.*, r.room_name, r.capacity, r.room_type, b.building_name,
-                                CASE 
-                                    WHEN rr.StudentID IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
-                                    WHEN rr.TeacherID IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
-                                END as RequesterName,
-                                CASE 
-                                    WHEN rr.StudentID IS NOT NULL THEN 'Student'
-                                    WHEN rr.TeacherID IS NOT NULL THEN 'Teacher'
-                                END as RequesterType,
-                                DATEDIFF(DATE(rr.StartTime), CURDATE()) as DaysUntilReservation,
-                                rr.RequestDate as RequestDate
-                                FROM room_requests rr
-                                LEFT JOIN rooms r ON rr.RoomID = r.id
-                                LEFT JOIN buildings b ON r.building_id = b.id
-                                LEFT JOIN student s ON rr.StudentID = s.StudentID
-                                LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
-                                ORDER BY 
-                                    CASE WHEN rr.Status = 'pending' THEN 0
-                                         WHEN rr.Status = 'approved' THEN 1
-                                         WHEN rr.Status = 'rejected' THEN 2
-                                    END ASC,
-                                    CASE WHEN rr.TeacherID IS NOT NULL THEN 0 ELSE 1 END, /* Teachers first */
-                                    DATEDIFF(DATE(rr.StartTime), CURDATE()) ASC, /* Prioritize by how soon the date is */
-                                    rr.RequestDate ASC"; /* Older requests come first for same dates */
+                        // Get the department of the logged-in admin
+                        $admin_department = $_SESSION['department'] ?? '';
 
-                        $result = $conn->query($sql);
-                        $requestCount = $result->num_rows;
+                        if (empty($admin_department)) {
+                            // Optional: Handle cases where department is not set for the admin
+                            echo "<div class='no-results'>Department not configured for this admin.</div>";
+                            $requests = [];
+                            $requestCount = 0;
+                        } else {
+                            // Query to get room requests with room and user info, filtered by department
+                            $sql = "SELECT rr.*, r.room_name, r.capacity, r.room_type, b.building_name,
+                                    CASE 
+                                        WHEN rr.StudentID IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+                                        WHEN rr.TeacherID IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+                                    END as RequesterName,
+                                    CASE 
+                                        WHEN rr.StudentID IS NOT NULL THEN 'Student'
+                                        WHEN rr.TeacherID IS NOT NULL THEN 'Teacher'
+                                    END as RequesterType,
+                                    s.Department as StudentDepartment,
+                                    t.Department as TeacherDepartment,
+                                    DATEDIFF(DATE(rr.StartTime), CURDATE()) as DaysUntilReservation,
+                                    rr.RequestDate as RequestDate
+                                    FROM room_requests rr
+                                    LEFT JOIN rooms r ON rr.RoomID = r.id
+                                    LEFT JOIN buildings b ON r.building_id = b.id
+                                    LEFT JOIN student s ON rr.StudentID = s.StudentID
+                                    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+                                    HAVING StudentDepartment = ? OR TeacherDepartment = ?
+                                    ORDER BY 
+                                        CASE WHEN rr.Status = 'pending' THEN 0
+                                             WHEN rr.Status = 'approved' THEN 1
+                                             WHEN rr.Status = 'rejected' THEN 2
+                                        END ASC,
+                                        CASE WHEN rr.TeacherID IS NOT NULL THEN 0 ELSE 1 END, /* Teachers first */
+                                        DATEDIFF(DATE(rr.StartTime), CURDATE()) ASC, /* Prioritize by how soon the date is */
+                                        rr.RequestDate ASC";
 
-                        // Calculate priority for sorting and display
-                        $requests = [];
-                        while ($row = $result->fetch_assoc()) {
-                            // Calculate priority score (lower = higher priority)
-                            $priorityScore = 0;
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("ss", $admin_department, $admin_department);
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            
+                            $requests = [];
+                            while ($row = $result->fetch_assoc()) {
+                                // Calculate priority score (lower = higher priority)
+                                $priorityScore = 0;
 
-                            // Teacher requests get higher priority (subtract 1000 to ensure they're always first)
-                            if ($row['RequesterType'] == 'Teacher') {
-                                $priorityScore -= 1000;
+                                // Teacher requests get higher priority (subtract 1000 to ensure they're always first)
+                                if ($row['RequesterType'] == 'Teacher') {
+                                    $priorityScore -= 1000;
+                                }
+
+                                // Urgent requests (within next 3 days) get higher priority
+                                $daysUntil = $row['DaysUntilReservation'];
+                                if ($daysUntil <= 0) {
+                                    $priorityScore -= 500;
+                                    $priorityLabel = "Today";
+                                    $priorityClass = "priority-urgent";
+                                } else if ($daysUntil <= 1) {
+                                    $priorityScore -= 400;
+                                    $priorityLabel = "Tomorrow";
+                                    $priorityClass = "priority-high";
+                                } else if ($daysUntil <= 3) {
+                                    $priorityScore -= 300;
+                                    $priorityLabel = "Soon";
+                                    $priorityClass = "priority-medium";
+                                } else if ($daysUntil <= 7) {
+                                    $priorityScore -= 200;
+                                    $priorityLabel = "This Week";
+                                    $priorityClass = "priority-normal";
+                                } else {
+                                    $priorityLabel = "Scheduled";
+                                    $priorityClass = "priority-low";
+                                }
+
+                                // Store priority information in the row
+                                $row['PriorityScore'] = $priorityScore;
+                                $row['PriorityLabel'] = $priorityLabel;
+                                $row['PriorityClass'] = $priorityClass;
+                                $row['DaysUntil'] = $daysUntil;
+
+                                $requests[] = $row;
                             }
 
-                            // Urgent requests (within next 3 days) get higher priority
-                            $daysUntil = $row['DaysUntilReservation'];
-                            if ($daysUntil <= 0) {
-                                // Today's reservations are highest priority
-                                $priorityScore -= 500;
-                                $priorityLabel = "Today";
-                                $priorityClass = "priority-urgent";
-                            } else if ($daysUntil <= 1) {
-                                // Tomorrow's reservations
-                                $priorityScore -= 400;
-                                $priorityLabel = "Tomorrow";
-                                $priorityClass = "priority-high";
-                            } else if ($daysUntil <= 3) {
-                                // Within 3 days
-                                $priorityScore -= 300;
-                                $priorityLabel = "Soon";
-                                $priorityClass = "priority-medium";
-                            } else if ($daysUntil <= 7) {
-                                // Within a week
-                                $priorityScore -= 200;
-                                $priorityLabel = "This Week";
-                                $priorityClass = "priority-normal";
-                            } else {
-                                $priorityLabel = "Scheduled";
-                                $priorityClass = "priority-low";
-                            }
-
-                            // Store priority information in the row
-                            $row['PriorityScore'] = $priorityScore;
-                            $row['PriorityLabel'] = $priorityLabel;
-                            $row['PriorityClass'] = $priorityClass;
-                            $row['DaysUntil'] = $daysUntil;
-
-                            $requests[] = $row;
+                            // Sort requests by priority score
+                            usort($requests, function ($a, $b) {
+                                $statusA = $a['Status'] == 'pending' ? 0 : ($a['Status'] == 'approved' ? 1 : 2);
+                                $statusB = $b['Status'] == 'pending' ? 0 : ($b['Status'] == 'approved' ? 1 : 2);
+                                if ($statusA != $statusB) {
+                                    return $statusA - $statusB;
+                                }
+                                return $a['PriorityScore'] - $b['PriorityScore'];
+                            });
                         }
-
-                        // Sort requests by priority score
-                        usort($requests, function ($a, $b) {
-                            // First compare status (pending first)
-                            $statusA = $a['Status'] == 'pending' ? 0 : ($a['Status'] == 'approved' ? 1 : 2);
-                            $statusB = $b['Status'] == 'pending' ? 0 : ($b['Status'] == 'approved' ? 1 : 2);
-
-                            if ($statusA != $statusB) {
-                                return $statusA - $statusB;
-                            }
-
-                            // Then sort by priority score (lower score = higher priority)
-                            return $a['PriorityScore'] - $b['PriorityScore'];
-                        });
 
                         // Display the count
                         $requestCount = count($requests);
@@ -449,6 +508,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                 <span class="priority-badge <?php echo $priorityClass; ?>"><?php echo $priorityLabel; ?></span>
                                             </div>
                                         <?php endif; ?>
+                                        
+                                        <?php if ($status == 'approved' && (!empty($row['ApproverFirstName']) || !empty($row['ApproverLastName']))): ?>
+                                            <div class="request-detail-item">
+                                                <i class="mdi mdi-check-circle" style="color: var(--success-color);"></i>
+                                                <span>Approved by: <?php echo htmlspecialchars($row['ApproverFirstName'] . ' ' . $row['ApproverLastName']); ?></span>
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        <?php if ($status == 'rejected' && (!empty($row['RejecterFirstName']) || !empty($row['RejecterLastName']))): ?>
+                                            <div class="request-detail-item">
+                                                <i class="mdi mdi-cancel" style="color: var(--danger-color);"></i>
+                                                <span>Rejected by: <?php echo htmlspecialchars($row['RejecterFirstName'] . ' ' . $row['RejecterLastName']); ?></span>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
 
                                     <?php if ($status == 'pending'): ?>
@@ -494,6 +567,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div id="detailsModal" class="modal">
             <div class="modal-content">
                 <h3 class="modal-title">Request Details
+                    <span class="close" onclick="closeDetailsModal()">&times;</span>
                 </h3>
                 <div class="modal-body" id="detailsModalContent">
                     <!-- Details will be loaded here -->
@@ -520,8 +594,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Auto fade-out alerts after 3 seconds
+        // When the DOM is loaded, initialize everything
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto fade-out alerts after 3 seconds
             const alerts = document.querySelectorAll('.fade-alert');
             if (alerts.length > 0) {
                 setTimeout(function() {
@@ -533,10 +608,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     });
                 }, 3000); // 3 seconds
             }
-        });
+            
+            // Initialize dropdown menus
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(function(dropdown) {
+                const next = dropdown.nextElementSibling;
+                if (next) {
+                    next.style.display = 'none';
+                }
+            });
 
-        // Show request count
-        document.getElementById('requestCount').textContent = "Showing <?php echo $requestCount; ?> of <?php echo $requestCount; ?> requests";
+            // Initialize filters
+            document.getElementById('searchInput').addEventListener('keyup', filterRequests);
+            document.getElementById('statusFilter').addEventListener('change', filterRequests);
+            document.getElementById('dateFilter').addEventListener('change', filterRequests);
+            document.getElementById('priorityFilter').addEventListener('change', filterRequests);
+            document.getElementById('clearFilters').addEventListener('click', clearFilters);
+            
+            // Show request count
+            document.getElementById('requestCount').textContent = "Showing <?php echo $requestCount; ?> of <?php echo $requestCount; ?> requests";
+        });
 
         // Rejection modal functions
         function showRejectModal(requestId) {
@@ -552,14 +643,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Request details modal functions
         function showRequestDetails(requestId) {
-            // In a real implementation, you would fetch details via AJAX
-            // For now, we'll use PHP to show the request details stored in data attributes
+            // Prepare the data for the modal
             <?php
             $detailsScript = '';
-            $result = $conn->query($sql);
-            while ($row = $result->fetch_assoc()) {
+            // Use the requests array we already have instead of querying again
+            foreach ($requests as $row) {
                 $id = $row['RequestID'];
-                $purpose = htmlspecialchars($row['Purpose'], ENT_QUOTES);
+                $purpose = htmlspecialchars($row['Purpose'] ?? '', ENT_QUOTES);
                 $statusClass = '';
                 switch ($row['Status']) {
                     case 'pending':
@@ -583,9 +673,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <p><strong>Time:</strong> <span>" . date('g:i A', strtotime($row['StartTime'])) . " - " . date('g:i A', strtotime($row['EndTime'])) . "</span></p>
                     <p><strong>Participants:</strong> <span>" . $row['NumberOfParticipants'] . "</span></p>
                     <p><strong>Status:</strong> <span class=\"status-badge $statusClass\">" . ucfirst($row['Status']) . "</span></p>";
+                
+                // Add approved by information if the request is approved
+                if ($row['Status'] === 'approved' && (!empty($row['ApproverFirstName']) || !empty($row['ApproverLastName']))) {
+                    $approverFullName = htmlspecialchars($row['ApproverFirstName'] . ' ' . $row['ApproverLastName'], ENT_QUOTES);
+                    $detailsScript .= "<p style=\"color: var(--success-color);\"><strong>Approved by:</strong> <span>" . $approverFullName . "</span></p>";
+                }
 
-                if ($row['Status'] === 'rejected' && !empty($row['RejectionReason'])) {
-                    $detailsScript .= "<p style=\"color: var(--danger-color);\"><strong>Rejection Reason:</strong> <span>" . htmlspecialchars($row['RejectionReason'], ENT_QUOTES) . "</span></p>";
+                if ($row['Status'] === 'rejected') {
+                    if (!empty($row['RejectionReason'])) {
+                        $detailsScript .= "<p style=\"color: var(--danger-color);\"><strong>Rejection Reason:</strong> <span>" . htmlspecialchars($row['RejectionReason'], ENT_QUOTES) . "</span></p>";
+                    }
+                    
+                    if (!empty($row['RejecterFirstName']) || !empty($row['RejecterLastName'])) {
+                        $rejecterFullName = htmlspecialchars($row['RejecterFirstName'] . ' ' . $row['RejecterLastName'], ENT_QUOTES);
+                        $detailsScript .= "<p style=\"color: var(--danger-color);\"><strong>Rejected by:</strong> <span>" . $rejecterFullName . "</span></p>";
+                    }
                 }
 
                 $detailsScript .= "`;\n";
@@ -602,19 +705,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('detailsModal').style.display = 'none';
         }
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', filterRequests);
-        document.getElementById('statusFilter').addEventListener('change', filterRequests);
-        document.getElementById('dateFilter').addEventListener('change', filterRequests);
-        document.getElementById('buildingFilter').addEventListener('change', filterRequests);
-        document.getElementById('priorityFilter').addEventListener('change', filterRequests);
-        document.getElementById('clearFilters').addEventListener('click', clearFilters);
-
         function filterRequests() {
             const searchValue = document.getElementById('searchInput').value.toLowerCase();
             const statusValue = document.getElementById('statusFilter').value;
             const dateValue = document.getElementById('dateFilter').value;
-            const buildingValue = document.getElementById('buildingFilter').value;
             const priorityValue = document.getElementById('priorityFilter').value;
 
             const requestCards = document.querySelectorAll('.request-card');
@@ -625,7 +719,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 const cardText = card.textContent.toLowerCase();
                 const cardStatus = card.getAttribute('data-status');
                 const cardDate = new Date(card.getAttribute('data-reservation-date'));
-                const cardBuilding = card.getAttribute('data-building');
                 const cardRequesterType = card.getAttribute('data-requester-type');
                 const cardDaysUntil = parseInt(card.getAttribute('data-days-until'));
 
@@ -639,11 +732,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     show = false;
                 }
 
-                // Filter by building
-                if (buildingValue && cardBuilding !== buildingValue) {
-                    show = false;
-                }
-
                 // Filter by priority
                 if (priorityValue) {
                     switch (priorityValue) {
@@ -654,11 +742,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             break;
                         case 'urgent':
                             if (cardDaysUntil > 1) { // Today or tomorrow
-                                show = false;
-                            }
-                            break;
-                        case 'soon':
-                            if (cardDaysUntil > 3) { // Within 3 days
                                 show = false;
                             }
                             break;
@@ -684,28 +767,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     const monthEnd = new Date(today);
                     monthEnd.setMonth(monthEnd.getMonth() + 1);
 
+                    const cardDateObj = new Date(cardDate);
+                    cardDateObj.setHours(0, 0, 0, 0);
+
                     switch (dateValue) {
                         case 'today':
-                            const cardDay = new Date(cardDate);
-                            cardDay.setHours(0, 0, 0, 0);
-                            if (cardDay.getTime() !== today.getTime()) {
+                            if (cardDateObj.toDateString() !== today.toDateString()) {
                                 show = false;
                             }
                             break;
                         case 'tomorrow':
-                            const nextDay = new Date(cardDate);
-                            nextDay.setHours(0, 0, 0, 0);
-                            if (nextDay.getTime() !== tomorrow.getTime()) {
+                            if (cardDateObj.toDateString() !== tomorrow.toDateString()) {
                                 show = false;
                             }
                             break;
                         case 'week':
-                            if (cardDate < today || cardDate > weekEnd) {
+                            if (cardDateObj < today || cardDateObj > weekEnd) {
                                 show = false;
                             }
                             break;
                         case 'month':
-                            if (cardDate < today || cardDate > monthEnd) {
+                            if (cardDateObj < today || cardDateObj > monthEnd) {
                                 show = false;
                             }
                             break;
@@ -742,7 +824,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('searchInput').value = '';
             document.getElementById('statusFilter').value = '';
             document.getElementById('dateFilter').value = '';
-            document.getElementById('buildingFilter').value = '';
             document.getElementById('priorityFilter').value = '';
 
             const requestCards = document.querySelectorAll('.request-card');

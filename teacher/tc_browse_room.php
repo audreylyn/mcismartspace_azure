@@ -42,6 +42,16 @@ require_once '../auth/room_status_handler.php';
                 display: none !important;
             }
         }
+        
+        /* Add style for department buildings */
+        .filter-checkbox-item.user-department .checkbox-label {
+            font-weight: bold;
+            color: #1e7e34;
+        }
+        .filter-checkbox-item.user-department .fa-home {
+            color: #1e7e34;
+            margin-left: 5px;
+        }
     </style>
 
 </head>
@@ -201,16 +211,41 @@ require_once '../auth/room_status_handler.php';
                                             <?php
                                             db();
 
-                                            // Query to get all buildings
-                                            $sql = "SELECT id, building_name FROM buildings";
-                                            $result = $conn->query($sql);
+                                            // Get the department of the logged-in teacher
+                                            $user_id = $_SESSION['user_id'];
+                                            $user_role = $_SESSION['role'];
+                                            $user_department = '';
+                                            
+                                            // Get the teacher's department
+                                            $user_query = "SELECT Department FROM teacher WHERE TeacherID = ?";
+                                            $stmt = $conn->prepare($user_query);
+                                            $stmt->bind_param("i", $user_id);
+                                            $stmt->execute();
+                                            $user_result = $stmt->get_result();
+                                            
+                                            if ($user_result->num_rows > 0) {
+                                                $user_row = $user_result->fetch_assoc();
+                                                $user_department = $user_row['Department'];
+                                            }
+
+                                            // Get all buildings, but mark the ones for the teacher's department
+                                            $sql = "SELECT id, building_name, department FROM buildings ORDER BY 
+                                                   CASE WHEN department = ? THEN 0 ELSE 1 END, 
+                                                   building_name ASC";
+                                            $stmt = $conn->prepare($sql);
+                                            $stmt->bind_param("s", $user_department);
+                                            $stmt->execute();
+                                            $result = $stmt->get_result();
 
                                             if ($result->num_rows > 0) {
                                                 while ($row = $result->fetch_assoc()) {
-                                                    echo '<div class="filter-checkbox-item">';
+                                                    $isUserDepartmentBuilding = ($row['department'] == $user_department);
+                                                    echo '<div class="filter-checkbox-item' . ($isUserDepartmentBuilding ? ' user-department' : '') . '">';
                                                     echo '<label>';
-                                                    echo '<input type="checkbox" name="building" value="' . $row['id'] . '" class="building-checkbox">';
-                                                    echo '<span class="checkbox-label">' . $row['building_name'] . '</span>';
+                                                    echo '<input type="checkbox" name="building" value="' . $row['id'] . '" class="building-checkbox"' . 
+                                                         ($isUserDepartmentBuilding ? ' checked' : '') . '>';
+                                                    echo '<span class="checkbox-label">' . $row['building_name'] . 
+                                                         ($isUserDepartmentBuilding ? ' <i class="fa fa-home" title="Your department building"></i>' : '') . '</span>';
                                                     echo '</label>';
                                                     echo '</div>';
                                                 }
@@ -308,8 +343,38 @@ require_once '../auth/room_status_handler.php';
                                 $params = [];
                                 $param_types = "";
 
+                                // Get user department buildings
+                                $user_department_buildings = [];
+                                if (!isset($_GET['building_ids'])) {
+                                    // First visit or no filter applied yet
+                                    $user_id = $_SESSION['user_id'];
+                                    
+                                    // Get teacher's department
+                                    $user_query = "SELECT Department FROM teacher WHERE TeacherID = ?";
+                                    $stmt = $conn->prepare($user_query);
+                                    $stmt->bind_param("i", $user_id);
+                                    $stmt->execute();
+                                    $user_result = $stmt->get_result();
+                                    
+                                    if ($user_result->num_rows > 0) {
+                                        $user_row = $user_result->fetch_assoc();
+                                        $user_department = $user_row['Department'];
+                                        
+                                        // Get building IDs for user's department
+                                        $building_query = "SELECT id FROM buildings WHERE department = ?";
+                                        $stmt = $conn->prepare($building_query);
+                                        $stmt->bind_param("s", $user_department);
+                                        $stmt->execute();
+                                        $building_result = $stmt->get_result();
+                                        
+                                        while ($brow = $building_result->fetch_assoc()) {
+                                            $user_department_buildings[] = $brow['id'];
+                                        }
+                                    }
+                                }
+
                                 // Get filter parameters
-                                $building_ids = isset($_GET['building_ids']) ? $_GET['building_ids'] : [];
+                                $building_ids = isset($_GET['building_ids']) ? $_GET['building_ids'] : $user_department_buildings;
                                 $room_types = isset($_GET['room_types']) ? $_GET['room_types'] : [];
                                 $min_capacity = isset($_GET['min_capacity']) ? intval($_GET['min_capacity']) : 0;
                                 $has_equipment = isset($_GET['has_equipment']) && $_GET['has_equipment'] === 'true';

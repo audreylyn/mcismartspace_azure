@@ -76,5 +76,6 @@
 </head>
 
 <body class="nav-md">
+    <?php include 'session_timer.php'; ?>
     <div class="container body">
         <div class="main_container">

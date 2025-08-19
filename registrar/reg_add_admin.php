@@ -1,10 +1,15 @@
 <?php
+// Include error handling configuration
+require_once __DIR__ . '/../middleware/error_handler.php';
+
+// Authentication checks
 require '../auth/middleware.php';
 checkAccess(['Registrar']);
-?>
-<?php include "includes/add_admin.php"; ?>
-<?php include "includes/message.php"; ?>
 
+// Include page-specific logic
+include "includes/add_admin.php";
+include "includes/message.php";
+?>
 
 <!DOCTYPE html>
 <html lang="en">

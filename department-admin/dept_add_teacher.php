@@ -55,7 +55,7 @@ checkAccess(['Department Admin']);
                     <div class="navbar-item dropdown has-divider">
                         <a class="navbar-link">
 
-                            <span>Hello, <?php echo $_SESSION['first_name']; ?></span>
+                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
                             <span class="icon">
                                 <i class="mdi mdi-chevron-down"></i>
                             </span>
@@ -250,15 +250,7 @@ checkAccess(['Department Admin']);
                                 <div class="control">
                                     <label class="label">Department:</label>
                                     <div class="select">
-                                        <select name="department" required>
-                                            <option value="">Select Department</option>
-                                            <?php
-                                            $departments = ['Accountancy', 'Business Administration', 'Hospitality Management', 'Education and Arts', 'Criminal Justice'];
-                                            foreach ($departments as $dept) {
-                                                echo '<option value="' . htmlspecialchars($dept) . '">' . htmlspecialchars($dept) . '</option>';
-                                            }
-                                            ?>
-                                        </select>
+                                        <input class="input" type="text" value="<?php echo htmlspecialchars($_SESSION['department'] ?? 'Not Assigned'); ?>" disabled>
                                     </div>
                                 </div>
                             </div>

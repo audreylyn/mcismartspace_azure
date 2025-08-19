@@ -4,6 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Set timezone to UTC
+date_default_timezone_set('UTC');
+
 // Centralized database connection (singleton)
 function db(): mysqli
 {

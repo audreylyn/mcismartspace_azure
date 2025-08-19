@@ -51,7 +51,7 @@ include 'includes/equipment_report.php'
                     <div class="navbar-item dropdown has-divider">
                         <a class="navbar-link">
 
-                            <span>Hello, <?php echo $_SESSION['first_name']; ?></span>
+                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
                             <span class="icon">
                                 <i class="mdi mdi-chevron-down"></i>
                             </span>

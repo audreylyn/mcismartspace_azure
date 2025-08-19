@@ -1,92 +1,125 @@
 <?php
-require_once __DIR__ . '/middleware.php';
-$conn = db();
+require_once __DIR__ . '/../middleware/rate_limiter.php';
+require_once __DIR__ . '/../middleware/session_manager.php';
+require_once __DIR__ . '/dbh.inc.php';
 
-// Check connection
-// Connection handled in db()
+$conn = db();
+$rateLimiter = new RateLimiter($conn);
+$sessionManager = new SessionManager();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $check = $rateLimiter->isAllowed();
+    if (!$check['allowed']) {
+        header("Location: ../index.php?error=locked");
+        exit();
+    }
+
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Basic validation
     if (empty($email) || empty($password)) {
         die("Email and password are required.");
     }
 
+    $loginSuccess = false;
+    $userData = [];
+
     // Check registrar
-    $stmt = $conn->prepare("SELECT regid, Reg_Password FROM registrar WHERE Reg_Email = ?");
+    $stmt = $conn->prepare("SELECT regid, Reg_Password, 'Registrar' as Role, 'Registrar' as FirstName FROM registrar WHERE Reg_Email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        // Direct password comparison for registrar
         if ($password === $row['Reg_Password']) {
-            $_SESSION['user_id'] = $row['regid'];
-            $_SESSION['role'] = 'Registrar';
-            header("Location: ../registrar/reg_add_admin.php");
-            exit();
+            $loginSuccess = true;
+            $userData = [
+                'user_id' => $row['regid'],
+                'role' => 'Registrar',
+                'email' => $email,
+                'name' => 'Registrar'
+            ];
+            $redirectUrl = "../registrar/reg_add_admin.php";
         }
     }
 
     // Check dept_admin
-    $stmt = $conn->prepare("SELECT AdminID, FirstName, Password, Department FROM dept_admin WHERE Email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        // Verify the password
-        if (password_verify($password, $row['Password'])) {
-            $_SESSION['user_id'] = $row['AdminID'];
-            $_SESSION['role'] = 'Department Admin';
-            $_SESSION['first_name'] = $row['FirstName'];
-            $_SESSION['department'] = $row['Department'];
-            header("Location: ../department-admin/dept-admin.php");
-            exit();
+    if (!$loginSuccess) {
+        $stmt = $conn->prepare("SELECT AdminID, FirstName, LastName, Password, Department, 'Department Admin' as Role FROM dept_admin WHERE Email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            if (password_verify($password, $row['Password'])) {
+                $loginSuccess = true;
+                $userData = [
+                    'user_id' => $row['AdminID'],
+                    'role' => 'Department Admin',
+                    'email' => $email,
+                    'name' => $row['FirstName'],
+                    'firstname' => $row['FirstName'],
+                    'lastname' => $row['LastName'],
+                    'department' => $row['Department']
+                ];
+                $redirectUrl = "../department-admin/dept-admin.php";
+            }
         }
     }
 
     // Check teacher
-    $stmt = $conn->prepare("SELECT TeacherID, FirstName, Password FROM teacher WHERE Email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        // Verify the password
-        if (password_verify($password, $row['Password'])) {
-            $_SESSION['user_id'] = $row['TeacherID'];
-            $_SESSION['role'] = 'Teacher';
-            $_SESSION['first_name'] = $row['FirstName'];
-            header("Location: ../teacher/tc_browse_room.php");
-            exit();
+    if (!$loginSuccess) {
+        $stmt = $conn->prepare("SELECT TeacherID, FirstName, Password, 'Teacher' as Role FROM teacher WHERE Email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            if (password_verify($password, $row['Password'])) {
+                $loginSuccess = true;
+                $userData = [
+                    'user_id' => $row['TeacherID'],
+                    'role' => 'Teacher',
+                    'email' => $email,
+                    'name' => $row['FirstName']
+                ];
+                $redirectUrl = "../teacher/tc_browse_room.php";
+            }
         }
     }
 
     // Check student
-    $stmt = $conn->prepare("SELECT StudentId, FirstName, Password FROM student WHERE Email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        // Verify the password
-        if (password_verify($password, $row['Password'])) {
-            $_SESSION['user_id'] = $row['StudentId'];
-            $_SESSION['role'] = 'Student';
-            $_SESSION['first_name'] = $row['FirstName'];
-            header("Location: ../student/std_browse_room.php");
-            exit();
+    if (!$loginSuccess) {
+        $stmt = $conn->prepare("SELECT StudentID, FirstName, Password, 'Student' as Role FROM student WHERE Email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            if (password_verify($password, $row['Password'])) {
+                $loginSuccess = true;
+                $userData = [
+                    'user_id' => $row['StudentID'],
+                    'role' => 'Student',
+                    'email' => $email,
+                    'name' => $row['FirstName']
+                ];
+                $redirectUrl = "../student/std_browse_room.php";
+            }
         }
     }
 
-    echo "Invalid credentials";
+    if ($loginSuccess) {
+        $rateLimiter->recordSuccessfulAttempt($email);
+        $sessionManager->createSession($userData);
+        header("Location: " . $redirectUrl);
+        exit();
+    } else {
+        $rateLimiter->recordFailedAttempt($email);
+        $remaining = $rateLimiter->getRemainingAttempts();
+        header("Location: ../index.php?error=invalid&attempts_left=" . $remaining);
+        exit();
+    }
 }
-
-// Connection kept open for reuse; do not close here
+?>
