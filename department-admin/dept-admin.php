@@ -36,20 +36,20 @@ if (empty($department)) {
     // echo "Warning: No department found for admin ID: " . $admin_id;
 }
 
-// Get teacher count - based on AdminID (teachers added by this admin)
+// Get teacher count - all teachers in the current department
 $teacher_count = 0;
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM teacher WHERE AdminID = ?");
-$stmt->bind_param("i", $admin_id);
+$stmt = $conn->prepare("SELECT COUNT(*) as count FROM teacher WHERE Department = ?");
+$stmt->bind_param("s", $department);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
     $teacher_count = $row['count'];
 }
 
-// Get student count - based on AdminID (students added by this admin)
+// Get student count - all students in the current department
 $student_count = 0;
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM student WHERE AdminID = ?");
-$stmt->bind_param("i", $admin_id);
+$stmt = $conn->prepare("SELECT COUNT(*) as count FROM student WHERE Department = ?");
+$stmt->bind_param("s", $department);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
@@ -87,38 +87,46 @@ if ($row = $result->fetch_assoc()) {
     $equipment_count = $row['count'];
 }
 
-// Calculate pending room requests count from students and teachers managed by this admin
+// Calculate pending room requests count for the current department
 $pending_requests = 0;
 $stmt = $conn->prepare("
     SELECT COUNT(*) as count 
     FROM room_requests rr
-    LEFT JOIN student s ON rr.StudentID = s.StudentID
-    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+    JOIN student s ON rr.StudentID = s.StudentID AND s.Department = ?
     WHERE rr.Status = 'pending'
-    AND (s.AdminID = ? OR t.AdminID = ?)
+    UNION
+    SELECT COUNT(*) as count 
+    FROM room_requests rr
+    JOIN teacher t ON rr.TeacherID = t.TeacherID AND t.Department = ?
+    WHERE rr.Status = 'pending'
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $pending_requests = $row['count'];
+$pending_requests = 0;
+while ($row = $result->fetch_assoc()) {
+    $pending_requests += $row['count'];
 }
 
-// Calculate unresolved equipment issues from students and teachers managed by this admin
+// Calculate unresolved equipment issues for the current department
 $unresolved_issues = 0;
 $stmt = $conn->prepare("
     SELECT COUNT(*) as count 
     FROM equipment_issues ei
-    LEFT JOIN student s ON ei.student_id = s.StudentID
-    LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
+    JOIN student s ON ei.student_id = s.StudentID AND s.Department = ?
     WHERE (ei.status = 'pending' OR ei.status = 'in_progress')
-    AND (s.AdminID = ? OR t.AdminID = ?)
+    UNION
+    SELECT COUNT(*) as count 
+    FROM equipment_issues ei
+    JOIN teacher t ON ei.teacher_id = t.TeacherID AND t.Department = ?
+    WHERE (ei.status = 'pending' OR ei.status = 'in_progress')
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
-if ($row = $result->fetch_assoc()) {
-    $unresolved_issues = $row['count'];
+$unresolved_issues = 0;
+while ($row = $result->fetch_assoc()) {
+    $unresolved_issues += $row['count'];
 }
 
 // Get equipment status statistics
@@ -197,62 +205,92 @@ while ($row = $result->fetch_assoc()) {
     $recent_issues[] = $row;
 }
 
-// Get room request statistics filtered by admin's students and teachers
+// Get room request statistics for current department
 $room_stats = [];
 $stmt = $conn->prepare("
     SELECT rr.Status, COUNT(*) as count 
     FROM room_requests rr
-    LEFT JOIN student s ON rr.StudentID = s.StudentID
-    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
-    WHERE (s.AdminID = ? OR t.AdminID = ?)
+    JOIN student s ON rr.StudentID = s.StudentID
+    WHERE s.Department = ?
+    GROUP BY rr.Status
+    UNION
+    SELECT rr.Status, COUNT(*) as count 
+    FROM room_requests rr
+    JOIN teacher t ON rr.TeacherID = t.TeacherID
+    WHERE t.Department = ?
     GROUP BY rr.Status
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $room_stats[$row['Status']] = $row['count'];
+    if (isset($room_stats[$row['Status']])) {
+        $room_stats[$row['Status']] += $row['count'];
+    } else {
+        $room_stats[$row['Status']] = $row['count'];
+    }
 }
 
-// Get equipment issues statistics filtered by admin's students and teachers
+// Get equipment issues statistics for current department
 $issue_stats = [];
 $stmt = $conn->prepare("
     SELECT ei.status, COUNT(*) as count 
     FROM equipment_issues ei
-    LEFT JOIN student s ON ei.student_id = s.StudentID
-    LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
-    WHERE (s.AdminID = ? OR t.AdminID = ?)
+    JOIN student s ON ei.student_id = s.StudentID
+    WHERE s.Department = ?
+    GROUP BY ei.status
+    UNION
+    SELECT ei.status, COUNT(*) as count 
+    FROM equipment_issues ei
+    JOIN teacher t ON ei.teacher_id = t.TeacherID
+    WHERE t.Department = ?
     GROUP BY ei.status
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $issue_stats[$row['status']] = $row['count'];
+    if (isset($issue_stats[$row['status']])) {
+        $issue_stats[$row['status']] += $row['count'];
+    } else {
+        $issue_stats[$row['status']] = $row['count'];
+    }
 }
 
-// Get monthly room request trends (last 6 months) filtered by admin's students and teachers
+// Get monthly room request trends (last 6 months) for current department
 $monthly_stats = [];
 $stmt = $conn->prepare("
     SELECT 
         DATE_FORMAT(rr.RequestDate, '%Y-%m') as month,
         COUNT(*) as count 
     FROM room_requests rr
-    LEFT JOIN student s ON rr.StudentID = s.StudentID
-    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
-    WHERE (s.AdminID = ? OR t.AdminID = ?)
+    JOIN student s ON rr.StudentID = s.StudentID
+    WHERE s.Department = ?
+    AND rr.RequestDate >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+    GROUP BY DATE_FORMAT(rr.RequestDate, '%Y-%m')
+    UNION
+    SELECT 
+        DATE_FORMAT(rr.RequestDate, '%Y-%m') as month,
+        COUNT(*) as count 
+    FROM room_requests rr
+    JOIN teacher t ON rr.TeacherID = t.TeacherID
+    WHERE t.Department = ?
     AND rr.RequestDate >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
     GROUP BY DATE_FORMAT(rr.RequestDate, '%Y-%m')
     ORDER BY month ASC
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-    $monthly_stats[$row['month']] = $row['count'];
+    if (isset($monthly_stats[$row['month']])) {
+        $monthly_stats[$row['month']] += $row['count'];
+    } else {
+        $monthly_stats[$row['month']] = $row['count'];
+    }
 }
 
-// Get recent equipment issues filtered by admin's students and teachers
+// Get recent equipment issues for current department
 $recent_issues = [];
 $stmt = $conn->prepare("
     SELECT 
@@ -270,13 +308,13 @@ $stmt = $conn->prepare("
         END as user_type
     FROM equipment_issues ei
     JOIN equipment e ON ei.equipment_id = e.id
-    LEFT JOIN student s ON ei.student_id = s.StudentID
-    LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
-    WHERE (s.AdminID = ? OR t.AdminID = ?)
+    LEFT JOIN student s ON ei.student_id = s.StudentID AND s.Department = ?
+    LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID AND t.Department = ?
+    WHERE (s.StudentID IS NOT NULL OR t.TeacherID IS NOT NULL)
     ORDER BY ei.reported_at DESC
     LIMIT 5
 ");
-$stmt->bind_param("ii", $admin_id, $admin_id);
+$stmt->bind_param("ss", $department, $department);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
