@@ -31,6 +31,94 @@ include "includes/message.php";
         .card-content {
             padding: 15px;
         }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 450px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+        }
+
+        .close:hover {
+            color: #555;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: all 0.2s;
+        }
+
+        .modal-button:hover {
+            background-color: #45a049;
+            transform: translateY(-1px);
+        }
+
+        /* Action buttons styling */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
     </style>
 </head>
 
@@ -128,11 +216,6 @@ include "includes/message.php";
                                 </a>
                             </li>
                             <li>
-                                <a href="./reg_add_room.php">
-                                    <span>Add Rooms</span>
-                                </a>
-                            </li>
-                            <li>
                                 <a href="./reg_summary.php">
                                     <span>Facility Management</span>
                                 </a>
@@ -188,7 +271,6 @@ include "includes/message.php";
                         <table id="adminTable" class="table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
-                                    <th>AdminID</th>
                                     <th>FirstName</th>
                                     <th>LastName</th>
                                     <th>Department</th>
@@ -199,17 +281,29 @@ include "includes/message.php";
                             <tbody>
                                 <?php if ($result->num_rows === 0): ?>
                                     <tr>
-                                        <td colspan="6" class="has-text-centered">No admins found.</td>
+                                        <td colspan="5" class="has-text-centered">No admins found.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php while ($row = $result->fetch_assoc()): ?>
                                         <tr>
-                                            <td data-label="AdminID"><?= htmlspecialchars($row['AdminID']) ?></td>
                                             <td data-label="FirstName"><?= htmlspecialchars($row['FirstName']) ?></td>
                                             <td data-label="LastName"><?= htmlspecialchars($row['LastName']) ?></td>
                                             <td data-label="Department"><?= htmlspecialchars($row['Department']) ?></td>
                                             <td data-label="Email"><?= htmlspecialchars($row['Email']) ?></td>
                                             <td class="action-buttons">
+                                                <button class="button is-info styled-button" 
+                                                    onclick="openEditModal('<?= htmlspecialchars($row['AdminID']) ?>', 
+                                                    '<?= htmlspecialchars($row['FirstName']) ?>', 
+                                                    '<?= htmlspecialchars($row['LastName']) ?>', 
+                                                    '<?= htmlspecialchars($row['Department']) ?>', 
+                                                    '<?= htmlspecialchars($row['Email']) ?>')">
+                                                    <span class="icon">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                        </svg>
+                                                    </span>
+                                                </button>
                                                 <button class="button is-danger styled-button is-reset"
                                                     onclick="if(confirm('Are you sure you want to delete this admin?')) window.location.href='?id=<?= htmlspecialchars($row['AdminID']) ?>'">
                                                     <span class="icon">
@@ -237,50 +331,52 @@ include "includes/message.php";
                     <header class="card-header">
                         <div class="new-title-container" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 5px 0 5px 20px;">
                             <p class="new-title">Add Admin</p>
-                            <form action="includes/import_admin.php" class="form-data" method="post" enctype="multipart/form-data" style="display: flex;">
-                                <button class="excel" style="border-radius: 0.3em 0 0 0.3em; display: flex; justify-content: center; width: 50px; padding: 0.5rem;">
-                                    <svg
-                                        fill="#fff"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 50 50"
-                                        style="margin: 0;">
-                                        <path
-                                            d="M28.8125 .03125L.8125 5.34375C.339844 
-                                        5.433594 0 5.863281 0 6.34375L0 43.65625C0 
-                                        44.136719 .339844 44.566406 .8125 44.65625L28.8125 
-                                        49.96875C28.875 49.980469 28.9375 50 29 50C29.230469 
-                                        50 29.445313 49.929688 29.625 49.78125C29.855469 49.589844 
-                                        30 49.296875 30 49L30 1C30 .703125 29.855469 .410156 29.625 
-                                        .21875C29.394531 .0273438 29.105469 -.0234375 28.8125 .03125ZM32 
-                                        6L32 13L34 13L34 15L32 15L32 20L34 20L34 22L32 22L32 27L34 27L34 
-                                        29L32 29L32 35L34 35L34 37L32 37L32 44L47 44C48.101563 44 49 
-                                        43.101563 49 42L49 8C49 6.898438 48.101563 6 47 6ZM36 13L44 
-                                        13L44 15L36 15ZM6.6875 15.6875L11.8125 15.6875L14.5 21.28125C14.710938 
-                                        21.722656 14.898438 22.265625 15.0625 22.875L15.09375 22.875C15.199219 
-                                        22.511719 15.402344 21.941406 15.6875 21.21875L18.65625 15.6875L23.34375 
-                                        15.6875L17.75 24.9375L23.5 34.375L18.53125 34.375L15.28125 
-                                        28.28125C15.160156 28.054688 15.035156 27.636719 14.90625 
-                                        27.03125L14.875 27.03125C14.8125 27.316406 14.664063 27.761719 
-                                        14.4375 28.34375L11.1875 34.375L6.1875 34.375L12.15625 25.03125ZM36 
-                                        20L44 20L44 22L36 22ZM36 27L44 27L44 29L36 29ZM36 35L44 35L44 37L36 37Z"></path>
-                                    </svg>
-                                    <input type="file" name="file" class="file" accept=".csv" required />
-                                </button>
-                                <button class="container-btn-file" type="submit" name="importSubmit" style="border-radius: 0 0.3em 0.3em 0;">
-                                    <svg
-                                        fill="#fff"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 24 24">
-                                        <path
-                                            d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
-                                    </svg>
-                                    Import
-                                </button>
-                            </form>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                                <form action="includes/import_admin.php" class="form-data" method="post" enctype="multipart/form-data" style="display: flex;">
+                                    <button class="excel" style="border-radius: 0.3em 0 0 0.3em; display: flex; justify-content: center; width: 50px; padding: 0.5rem;">
+                                        <svg
+                                            fill="#fff"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="20"
+                                            height="20"
+                                            viewBox="0 0 50 50"
+                                            style="margin: 0;">
+                                            <path
+                                                d="M28.8125 .03125L.8125 5.34375C.339844 
+                                            5.433594 0 5.863281 0 6.34375L0 43.65625C0 
+                                            44.136719 .339844 44.566406 .8125 44.65625L28.8125 
+                                            49.96875C28.875 49.980469 28.9375 50 29 50C29.230469 
+                                            50 29.445313 49.929688 29.625 49.78125C29.855469 49.589844 
+                                            30 49.296875 30 49L30 1C30 .703125 29.855469 .410156 29.625 
+                                            .21875C29.394531 .0273438 29.105469 -.0234375 28.8125 .03125ZM32 
+                                            6L32 13L34 13L34 15L32 15L32 20L34 20L34 22L32 22L32 27L34 27L34 
+                                            29L32 29L32 35L34 35L34 37L32 37L32 44L47 44C48.101563 44 49 
+                                            43.101563 49 42L49 8C49 6.898438 48.101563 6 47 6ZM36 13L44 
+                                            13L44 15L36 15ZM6.6875 15.6875L11.8125 15.6875L14.5 21.28125C14.710938 
+                                            21.722656 14.898438 22.265625 15.0625 22.875L15.09375 22.875C15.199219 
+                                            22.511719 15.402344 21.941406 15.6875 21.21875L18.65625 15.6875L23.34375 
+                                            15.6875L17.75 24.9375L23.5 34.375L18.53125 34.375L15.28125 
+                                            28.28125C15.160156 28.054688 15.035156 27.636719 14.90625 
+                                            27.03125L14.875 27.03125C14.8125 27.316406 14.664063 27.761719 
+                                            14.4375 28.34375L11.1875 34.375L6.1875 34.375L12.15625 25.03125ZM36 
+                                            20L44 20L44 22L36 22ZM36 27L44 27L44 29L36 29ZM36 35L44 35L44 37L36 37Z"></path>
+                                        </svg>
+                                        <input type="file" name="file" class="file" accept=".csv" required />
+                                    </button>
+                                    <button class="container-btn-file" type="submit" name="importSubmit" style="border-radius: 0 0.3em 0.3em 0;">
+                                        <svg
+                                            fill="#fff"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="20"
+                                            height="20"
+                                            viewBox="0 0 24 24">
+                                            <path
+                                                d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
+                                        </svg>
+                                        Import
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </header>
                     <div class="card-content">
@@ -343,11 +439,66 @@ include "includes/message.php";
             <div class="modal-content">
                 <span class="close" id="closeModal">&times;</span>
                 <h2 id="modalTitle"></h2>
-                <p id="modalMessage"></p>
+                <div id="modalMessage"></div>
                 <button class="modal-button" onclick="closeModal()">OK</button>
             </div>
         </div>
 
+        <!-- Modal for editing admin -->
+        <div id="editModal" class="modal">
+            <div class="modal-content" style="width: 500px; max-width: 90%;">
+                <span class="close" id="closeEditModal">&times;</span>
+                <h2>Edit Administrator</h2>
+                <form id="editAdminForm" method="POST" action="includes/update_admin.php">
+                    <input type="hidden" name="admin_id" id="edit_admin_id">
+                    
+                    <div class="field">
+                        <label class="label">First Name</label>
+                        <div class="control">
+                            <input class="input" type="text" name="first_name" id="edit_first_name" pattern="[A-Za-z\s]+" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Last Name</label>
+                        <div class="control">
+                            <input class="input" type="text" name="last_name" id="edit_last_name" pattern="[A-Za-z\s]+" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Department</label>
+                        <div class="control">
+                            <div class="select" style="width: 100%;">
+                                <select name="department" id="edit_department" required style="width: 100%;">
+                                    <option value="">Select Department</option>
+                                    <?php
+                                    $departments = ['Accountancy', 'Business Administration', 'Hospitality Management', 'Education and Arts', 'Criminal Justice'];
+                                    foreach ($departments as $dept) {
+                                        echo '<option value="' . htmlspecialchars($dept) . '">' . htmlspecialchars($dept) . '</option>';
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <div class="control">
+                            <input class="input" type="email" name="email" id="edit_email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="field" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                        <div class="control">
+                            <button type="button" class="modal-button" style="background-color: #ccc; margin-right: 10px;" onclick="closeEditModal()">Cancel</button>
+                            <button type="submit" class="modal-button" style="background-color: #ffc107;">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <?php
         // Close the database connection
@@ -379,8 +530,29 @@ include "includes/message.php";
                 columnDefs: [{
                     targets: -1,
                     orderable: false
-                }]
+                }],
+                order: [[0, 'asc']] // Order by FirstName by default
             });
+            
+            // Add CSS for better error message formatting
+            $('<style>')
+                .prop('type', 'text/css')
+                .html(`
+                    #modalMessage {
+                        max-height: 300px;
+                        overflow-y: auto;
+                        line-height: 1.4;
+                    }
+                    #modalMessage strong {
+                        display: block;
+                        margin-top: 10px;
+                        color: #d32f2f;
+                    }
+                    .modal-content {
+                        max-width: 500px;
+                    }
+                `)
+                .appendTo('head');
         });
 
         // Show alerts on page load if messages exist
@@ -400,11 +572,11 @@ include "includes/message.php";
 
     <!-- Enhanced Modal JavaScript -->
     <script>
-        // Function to show the modal with the message
+        // Function to show the message modal
         function showModal(title, message, type = 'success') {
             const modal = document.getElementById('messageModal');
             document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalMessage').innerHTML = message;
 
             // Add the type class for specific styling
             modal.classList.add(type);
@@ -427,10 +599,12 @@ include "includes/message.php";
         window.onclick = function(event) {
             if (event.target == document.getElementById('messageModal')) {
                 closeModal();
+            } else if (event.target == document.getElementById('editModal')) {
+                closeEditModal();
             }
         }
 
-        // Function to close modal with animation
+        // Function to close message modal with animation
         function closeModal() {
             const modal = document.getElementById('messageModal');
             modal.classList.remove('show');
@@ -442,13 +616,47 @@ include "includes/message.php";
             }, 300);
         }
 
+        // Function to open edit modal
+        function openEditModal(adminId, firstName, lastName, department, email) {
+            // Populate form fields with admin data
+            document.getElementById('edit_admin_id').value = adminId;
+            document.getElementById('edit_first_name').value = firstName;
+            document.getElementById('edit_last_name').value = lastName;
+            document.getElementById('edit_department').value = department;
+            document.getElementById('edit_email').value = email;
+
+            // Show the modal
+            const modal = document.getElementById('editModal');
+            modal.style.display = "block";
+
+            // Trigger reflow for animation to work
+            void modal.offsetWidth;
+            modal.classList.add('show');
+        }
+
+        // Function to close edit modal
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('show');
+
+            // Wait for animation to complete before hiding
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 300);
+        }
+
+        // Close the edit modal when the user clicks on <span> (x)
+        document.getElementById('closeEditModal').onclick = function() {
+            closeEditModal();
+        }
+
         // Show the modal if there are messages
         <?php if ($success_message): ?>
             showModal("Success", "<?php echo addslashes($success_message); ?>", "success");
         <?php endif; ?>
 
         <?php if ($error_message): ?>
-            showModal("Error", "<?php echo addslashes($error_message); ?>", "error");
+            showModal("Error", `<?php echo str_replace('`', '\`', $error_message); ?>`, "error");
         <?php endif; ?>
     </script>
 </body>

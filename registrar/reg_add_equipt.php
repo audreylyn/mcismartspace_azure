@@ -122,11 +122,7 @@ checkAccess(['Registrar']);
                                     <span>Add Building</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="./reg_add_room.php">
-                                    <span>Add Rooms</span>
-                                </a>
-                            </li>
+
                             <li>
                                 <a href="./reg_summary.php">
                                     <span>Facility Management</span>

@@ -123,11 +123,7 @@ checkAccess(['Registrar']);
                                     <span>Add Building</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="./reg_add_room.php">
-                                    <span>Add Rooms</span>
-                                </a>
-                            </li>
+
                             <li>
                                 <a href="./reg_summary.php">
                                     <span>Facility Management</span>
@@ -227,8 +223,8 @@ checkAccess(['Registrar']);
                                     <input class="input" type="text" name="building_name" required>
                                 </div>
                                 <div class="control">
-                                    <label class="label">Number Of Floors:</label>
-                                    <input class="input" type="number" name="number_of_floors" min="1" required>
+                                    <label class="label">Number Of Floors (Max 7):</label>
+                                    <input class="input" type="number" name="number_of_floors" min="1" max="7" required>
                                 </div>
                             </div>
 
