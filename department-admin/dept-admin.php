@@ -92,13 +92,9 @@ $pending_requests = 0;
 $stmt = $conn->prepare("
     SELECT COUNT(*) as count 
     FROM room_requests rr
-    JOIN student s ON rr.StudentID = s.StudentID AND s.Department = ?
-    WHERE rr.Status = 'pending'
-    UNION
-    SELECT COUNT(*) as count 
-    FROM room_requests rr
-    JOIN teacher t ON rr.TeacherID = t.TeacherID AND t.Department = ?
-    WHERE rr.Status = 'pending'
+    LEFT JOIN student s ON rr.StudentID = s.StudentID
+    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+    WHERE rr.Status = 'pending' AND (s.Department = ? OR t.Department = ?)
 ");
 $stmt->bind_param("ss", $department, $department);
 $stmt->execute();
@@ -210,14 +206,9 @@ $room_stats = [];
 $stmt = $conn->prepare("
     SELECT rr.Status, COUNT(*) as count 
     FROM room_requests rr
-    JOIN student s ON rr.StudentID = s.StudentID
-    WHERE s.Department = ?
-    GROUP BY rr.Status
-    UNION
-    SELECT rr.Status, COUNT(*) as count 
-    FROM room_requests rr
-    JOIN teacher t ON rr.TeacherID = t.TeacherID
-    WHERE t.Department = ?
+    LEFT JOIN student s ON rr.StudentID = s.StudentID
+    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+    WHERE (s.Department = ? OR t.Department = ?)
     GROUP BY rr.Status
 ");
 $stmt->bind_param("ss", $department, $department);

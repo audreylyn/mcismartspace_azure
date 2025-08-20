@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'email' => $email,
                     'name' => $row['FirstName']
                 ];
-                $redirectUrl = "../teacher/tc_browse_room.php";
+                $redirectUrl = "../users/users_browse_room.php";
             }
         }
     }
@@ -105,7 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'email' => $email,
                     'name' => $row['FirstName']
                 ];
-                $redirectUrl = "../student/std_browse_room.php";
+                $redirectUrl = "../users/users_browse_room.php";
             }
         }
     }

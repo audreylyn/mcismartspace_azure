@@ -91,12 +91,11 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     exit;
 }
 
-// Fetch all teachers created by the logged-in admin and in the same department
-$admin_id = $_SESSION['user_id']; // Get the logged-in admin's ID
+// Fetch all teachers in the department, regardless of which admin added them
 $admin_department = $_SESSION['department'] ?? '';
 
-$sql = "SELECT TeacherID, FirstName, LastName, Department, Email FROM teacher WHERE AdminID = ? AND Department = ?";
+$sql = "SELECT TeacherID, FirstName, LastName, Department, Email FROM teacher WHERE Department = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $admin_id, $admin_department);
+$stmt->bind_param("s", $admin_department);
 $stmt->execute();
 $result = $stmt->get_result();

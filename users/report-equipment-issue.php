@@ -1,11 +1,15 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 // Initialize session if not already started
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// Get user role and ID from session
+$userRole = $_SESSION['role'];
+$userId = $_SESSION['user_id'];
 
 // Get equipment details from query parameters
 $equipmentId = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
@@ -44,21 +48,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
     $issueType = $_POST['issue_type'];
     $condition = $_POST['condition'];
     $description = $_POST['description'];
-    $studentId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+    $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+    $userRole = $_SESSION['role']; // Get user role from session
     $imagePath = null;
 
-    // Verify the student ID exists in the database
-    if ($studentId) {
-        $checkStudentSql = "SELECT StudentID FROM student WHERE StudentID = ?";
-        $checkStmt = $conn->prepare($checkStudentSql);
-        $checkStmt->bind_param("i", $studentId);
+    // Verify the user ID exists in the database
+    if ($userId) {
+        // Use different table based on user role
+        if ($userRole === 'Student') {
+            $checkUserSql = "SELECT StudentID FROM student WHERE StudentID = ?";
+            $userIdField = "StudentID";
+            $errorMsg = "student";
+        } else { // Teacher
+            $checkUserSql = "SELECT TeacherID FROM teacher WHERE TeacherID = ?";
+            $userIdField = "TeacherID";
+            $errorMsg = "teacher";
+        }
+        
+        $checkStmt = $conn->prepare($checkUserSql);
+        $checkStmt->bind_param("i", $userId);
         $checkStmt->execute();
         $result = $checkStmt->get_result();
 
         if ($result->num_rows === 0) {
-            // Student ID doesn't exist in the database
-            $error_message = "Error: Your student ID is not found in the database. Please contact support.";
-            $studentId = null; // Set to null since it's invalid
+            // User ID doesn't exist in the database
+            $error_message = "Error: Your $errorMsg ID is not found in the database. Please contact support.";
+            $userId = null; // Set to null since it's invalid
         }
         $checkStmt->close();
     } else {
@@ -76,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
 
         // Generate unique filename
         $timestamp = time();
-        $filename = "issue_" . $studentId . "_" . $timestamp . ".jpg";
+        $filename = "issue_" . $userId . "_" . $timestamp . ".jpg";
         $uploadPath = $uploadDir . $filename;
 
         // Simple file upload without image processing
@@ -87,14 +102,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
         }
     }
 
-    // Only proceed with insert if we have a valid student ID and no errors
-    if ($studentId && !isset($error_message)) {
-        // Prepare SQL statement to insert report with image path
-        $sql = "INSERT INTO equipment_issues (equipment_id, student_id, issue_type, description, image_path, status, statusCondition, reported_at) 
-                VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW())";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iissss", $equipmentId, $studentId, $issueType, $description, $imagePath, $condition);
+    // Only proceed with insert if we have a valid user ID and no errors
+    if ($userId && !isset($error_message)) {
+        // Prepare SQL statement to insert report with image path based on user role
+        if ($userRole === 'Student') {
+            $sql = "INSERT INTO equipment_issues (equipment_id, student_id, issue_type, description, image_path, status, statusCondition, reported_at) 
+                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW())";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iissss", $equipmentId, $userId, $issueType, $description, $imagePath, $condition);
+        } else { // Teacher
+            $sql = "INSERT INTO equipment_issues (equipment_id, teacher_id, issue_type, description, image_path, status, statusCondition, reported_at) 
+                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW())";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("iissss", $equipmentId, $userId, $issueType, $description, $imagePath, $condition);
+        }
 
         // Execute the statement
         try {
@@ -110,7 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
                 $auditSql = "INSERT INTO equipment_audit (equipment_id, action, notes) 
                             VALUES (?, 'Issue Reported', ?)";
                 $auditStmt = $conn->prepare($auditSql);
-                $auditNotes = "Issue reported by student ID: $studentId - Type: $issueType";
+                $roleText = ($userRole === 'Student') ? 'student' : 'teacher';
+                $auditNotes = "Issue reported by $roleText ID: $userId - Type: $issueType";
                 $auditStmt->bind_param("is", $equipmentId, $auditNotes);
                 $auditStmt->execute();
 

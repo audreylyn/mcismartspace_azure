@@ -1,8 +1,12 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 require_once '../auth/room_status_handler.php';
+
+// Get user role and ID from session
+$userRole = $_SESSION['role'];
+$userId = $_SESSION['user_id'];
 ?>
 
 <?php include "../partials/header_reservation-history.php"; ?>
@@ -28,7 +32,7 @@ require_once '../auth/room_status_handler.php';
                 <ul class="nav side-menu" class="navbar nav_title" style="border: 0;">
 
                     <li>
-                        <a href="std_browse_room.php">
+                        <a href="users_browse_room.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0">
                                     <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
@@ -47,7 +51,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li>
-                        <a href="std_room_status.php">
+                        <a href="users_room_status.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -67,7 +71,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li class="active">
-                        <a href="std_reservation_history.php">
+                        <a href="users_reservation_history.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 8v4l3 3"></path>
@@ -151,8 +155,12 @@ require_once '../auth/room_status_handler.php';
 
         db();
 
-        // Get student ID from session
-        $studentId = $_SESSION['user_id']; // Adjust based on your session structure
+        // Get user info from session
+        $userId = $_SESSION['user_id']; // User ID (either StudentID or TeacherID)
+        $userRole = $_SESSION['role']; // User role (Student or Teacher)
+        
+        // Determine which ID field to use in the query based on role
+        $idField = ($userRole === 'Student') ? 'StudentID' : 'TeacherID';
 
         // Get counts for each type
         $countSql = "SELECT 
@@ -161,9 +169,9 @@ require_once '../auth/room_status_handler.php';
                         SUM(CASE WHEN EndTime < NOW() AND Status = 'approved' THEN 1 ELSE 0 END) as CompletedCount,
                         SUM(CASE WHEN Status = 'rejected' THEN 1 ELSE 0 END) as CancelledCount
                      FROM room_requests 
-                     WHERE StudentID = ?";
+                     WHERE $idField = ?";
         $countStmt = $conn->prepare($countSql);
-        $countStmt->bind_param("i", $studentId);
+        $countStmt->bind_param("i", $userId);
         $countStmt->execute();
         $countResult = $countStmt->get_result();
 
@@ -196,7 +204,7 @@ require_once '../auth/room_status_handler.php';
         <!-- Reservation List -->
         <div class="reservation-list">
             <?php
-            // Query to get student's room requests
+            // Query to get user's room requests
             $sql = "SELECT rr.*, r.room_name, r.room_type, r.capacity, b.building_name,
                     (SELECT GROUP_CONCAT(e.name SEPARATOR ', ') 
                      FROM room_equipment re 
@@ -205,11 +213,11 @@ require_once '../auth/room_status_handler.php';
                     FROM room_requests rr 
                     JOIN rooms r ON rr.RoomID = r.id 
                     JOIN buildings b ON r.building_id = b.id 
-                    WHERE rr.StudentID = ? 
+                    WHERE rr.$idField = ? 
                     ORDER BY rr.StartTime DESC";
 
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $studentId);
+            $stmt->bind_param("i", $userId);
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -312,7 +320,7 @@ require_once '../auth/room_status_handler.php';
                     </div>
                     <div class="empty-state-text">No reservation history yet</div>
                     <div class="empty-state-subtext">Your reservations will appear here</div>
-                    <a href="std_browse_room.php" class="btn-action btn-new-request">Make a Reservation</a>
+                    <a href="users_browse_room.php" class="btn-action btn-new-request">Make a Reservation</a>
                 </div>
             <?php
             }

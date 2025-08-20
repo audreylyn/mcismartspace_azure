@@ -94,12 +94,11 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     exit;
 }
 
-// Fetch all students created by the logged-in admin and in the same department
-$admin_id = $_SESSION['user_id']; // Get the logged-in admin's ID
+// Fetch all students in the department, regardless of which admin added them
 $admin_department = $_SESSION['department'] ?? '';
 
-$sql = "SELECT StudentId, FirstName, LastName, Department, Program, YearSection, Email FROM student WHERE AdminID = ? AND Department = ?";
+$sql = "SELECT StudentId, FirstName, LastName, Department, Program, YearSection, Email FROM student WHERE Department = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $admin_id, $admin_department);
+$stmt->bind_param("s", $admin_department);
 $stmt->execute();
 $result = $stmt->get_result();

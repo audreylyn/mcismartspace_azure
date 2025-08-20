@@ -1,27 +1,26 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Teacher']);
+checkAccess(['Student', 'Teacher']);
 
-// Initialize session if not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+// Get user info from session
+$userId = $_SESSION['user_id'];
+$userRole = $_SESSION['role'];
 
-// Get current teacher ID
-$teacherId = $_SESSION['user_id'];
+// Determine ID field based on user role
+$idField = ($userRole === 'Student') ? 'student_id' : 'teacher_id';
 
-// Fetch all equipment reports made by this teacher
+// Fetch all equipment reports made by this user
 $sql = "SELECT ei.*, e.name as equipment_name, r.room_name, b.building_name 
         FROM equipment_issues ei
         JOIN equipment e ON ei.equipment_id = e.id
         JOIN room_equipment re ON e.id = re.equipment_id
         JOIN rooms r ON re.room_id = r.id
         JOIN buildings b ON r.building_id = b.id
-        WHERE ei.teacher_id = ?
+        WHERE ei.$idField = ?
         ORDER BY ei.reported_at DESC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $teacherId);
+$stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 $reports = $result->fetch_all(MYSQLI_ASSOC);
@@ -113,7 +112,7 @@ require_once '../auth/room_status_handler.php';
                 <ul class="nav side-menu" class="navbar nav_title" style="border: 0;">
 
                     <li>
-                        <a href="tc_browse_room.php">
+                        <a href="users_browse_room.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0">
                                     <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
@@ -132,7 +131,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li>
-                        <a href="tc_room_status.php">
+                        <a href="users_room_status.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -152,7 +151,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li>
-                        <a href="tc_reservation_history.php">
+                        <a href="users_reservation_history.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 8v4l3 3"></path>
@@ -240,7 +239,6 @@ require_once '../auth/room_status_handler.php';
                             <div class="report-id">Report #<?php echo $report['id']; ?></div>
                             <div class="status-badges">
                                 <?php echo getStatusBadge($report['status']); ?>
-
                             </div>
                         </div>
                         <div class="report-card-body">
@@ -303,6 +301,7 @@ require_once '../auth/room_status_handler.php';
         <?php endif; ?>
     </div>
 </div>
+
 <!-- footer content -->
 <footer>
     <div class="pull-right">
@@ -311,6 +310,7 @@ require_once '../auth/room_status_handler.php';
     <div class="clearfix"></div>
 </footer>
 <!-- /footer content -->
+
 <?php include "../partials/footer.php"; ?>
 
 <script>

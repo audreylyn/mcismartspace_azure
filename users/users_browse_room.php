@@ -1,9 +1,13 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 //automatically update room statuses
 require_once '../auth/room_status_handler.php';
+
+// Get user role and ID from session
+$userRole = $_SESSION['role'];
+$userId = $_SESSION['user_id'];
 ?>
 
 <!DOCTYPE html>
@@ -78,24 +82,8 @@ require_once '../auth/room_status_handler.php';
                     <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
                         <div class="menu_section">
                             <ul class="nav side-menu" class="navbar nav_title" style="border: 0;">
-                                <!-- <li>
-                                    <a href="../student.php">
-                                        <div class="icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                                <path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                                <path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                                <path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                                <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="menu-text">
-                                            <span>Dashboard</span>
-                                            <span class="fa fa-chevron-down" style="opacity: 0;"></span>
-                                        </div>
-                                    </a>
-                                </li> -->
                                 <li class="active">
-                                    <a href="std_browse_room.php">
+                                    <a href="users_browse_room.php">
                                         <div class="icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0" data-lov-id="src/components/layout/Sidebar.tsx:89:20" data-lov-name="Icon" data-component-path="src/components/layout/Sidebar.tsx" data-component-line="89" data-component-file="Sidebar.tsx" data-component-name="Icon" data-component-content="%7B%22className%22%3A%22flex-shrink-0%22%7D">
                                                 <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
@@ -114,7 +102,7 @@ require_once '../auth/room_status_handler.php';
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="std_room_status.php">
+                                    <a href="users_room_status.php">
                                         <div class="icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
                                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -134,7 +122,7 @@ require_once '../auth/room_status_handler.php';
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="std_reservation_history.php">
+                                    <a href="users_reservation_history.php">
                                         <div class="icon">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M12 8v4l3 3"></path>
@@ -810,7 +798,7 @@ require_once '../auth/room_status_handler.php';
 </script>
 
             <!-- Add a hidden form for traditional filtering method -->
-            <form id="filterForm" method="GET" action="std_browse_room.php" style="display: none;">
+            <form id="filterForm" method="GET" action="users_browse_room.php" style="display: none;">
                 <!-- Hidden inputs will be populated by JavaScript -->
                 <div id="hiddenInputsContainer"></div>
                 <input type="submit" id="submitFilters">

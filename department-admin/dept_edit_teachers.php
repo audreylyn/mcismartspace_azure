@@ -45,21 +45,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_teacher'])) {
         $isValid = false;
     }
 
-    // Check if teacher belongs to admin's department
-    $checkDeptSql = "SELECT AdminID FROM teacher WHERE TeacherID = ?";
-    $checkStmt = $conn->prepare($checkDeptSql);
-    $checkStmt->bind_param("i", $teacherId);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-    $teacherData = $checkResult->fetch_assoc();
-    $checkStmt->close();
+// Check if teacher belongs to the same department
+$checkDeptSql = "SELECT Department FROM teacher WHERE TeacherID = ?";
+$checkStmt = $conn->prepare($checkDeptSql);
+$checkStmt->bind_param("i", $teacherId);
+$checkStmt->execute();
+$checkResult = $checkStmt->get_result();
+$teacherData = $checkResult->fetch_assoc();
+$checkStmt->close();
 
-    if ($teacherData['AdminID'] !== $adminId) {
-        $errorMsg = "You can only edit teachers that you have added.";
-        $isValid = false;
-    }
-
-    // Check if email is already in use by another teacher
+if ($teacherData['Department'] !== $adminDepartment) {
+    $errorMsg = "You can only edit teachers in your department.";
+    $isValid = false;
+}    // Check if email is already in use by another teacher
     $checkEmailSql = "SELECT TeacherID FROM teacher WHERE Email = ? AND TeacherID != ?";
     $checkStmt = $conn->prepare($checkEmailSql);
     $checkStmt->bind_param("si", $email, $teacherId);
@@ -78,17 +76,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_teacher'])) {
                       LastName = ?, 
                       Email = ?,
                       Department = ?
-                      WHERE TeacherID = ? AND AdminID = ?";
+                      WHERE TeacherID = ? AND Department = ?";
 
         $updateStmt = $conn->prepare($updateSql);
         $updateStmt->bind_param(
-            "ssssii",
+            "ssssis",
             $firstName,
             $lastName,
             $email,
             $department,
             $teacherId,
-            $adminId
+            $adminDepartment
         );
 
         if ($updateStmt->execute()) {
@@ -105,8 +103,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_teacher'])) {
 if (isset($_GET['delete_id']) && !empty($_GET['delete_id'])) {
     $deleteId = (int)$_GET['delete_id'];
 
-    // Check if teacher belongs to admin's department
-    $checkDeptSql = "SELECT AdminID FROM teacher WHERE TeacherID = ?";
+    // Check if teacher belongs to the same department
+    $checkDeptSql = "SELECT Department FROM teacher WHERE TeacherID = ?";
     $checkStmt = $conn->prepare($checkDeptSql);
     $checkStmt->bind_param("i", $deleteId);
     $checkStmt->execute();
@@ -115,11 +113,11 @@ if (isset($_GET['delete_id']) && !empty($_GET['delete_id'])) {
     if ($checkResult->num_rows > 0) {
         $teacherData = $checkResult->fetch_assoc();
 
-        if ($teacherData['AdminID'] === $adminId) {
+        if ($teacherData['Department'] === $adminDepartment) {
             // Teacher belongs to admin's department, proceed with deletion
-            $deleteSql = "DELETE FROM teacher WHERE TeacherID = ? AND AdminID = ?";
+            $deleteSql = "DELETE FROM teacher WHERE TeacherID = ? AND Department = ?";
             $deleteStmt = $conn->prepare($deleteSql);
-            $deleteStmt->bind_param("ii", $deleteId, $adminId);
+            $deleteStmt->bind_param("is", $deleteId, $adminDepartment);
 
             if ($deleteStmt->execute()) {
                 $successMsg = "Teacher deleted successfully!";
@@ -129,7 +127,7 @@ if (isset($_GET['delete_id']) && !empty($_GET['delete_id'])) {
 
             $deleteStmt->close();
         } else {
-            $errorMsg = "You can only delete teachers that you have added.";
+            $errorMsg = "You can only delete teachers in your department.";
         }
     } else {
         $errorMsg = "Teacher not found.";
@@ -138,10 +136,10 @@ if (isset($_GET['delete_id']) && !empty($_GET['delete_id'])) {
     $checkStmt->close();
 }
 
-// Fetch teachers in admin's department
-$sql = "SELECT * FROM teacher WHERE AdminID = ? ORDER BY TeacherID ASC";
+// Fetch all teachers in the department, regardless of which admin added them
+$sql = "SELECT * FROM teacher WHERE Department = ? ORDER BY TeacherID ASC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $adminId);
+$stmt->bind_param("s", $adminDepartment);
 $stmt->execute();
 $teachersResult = $stmt->get_result();
 $stmt->close();
@@ -969,7 +967,6 @@ $stmt->close();
                         <table id="teacherTable" class="table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
-                                    <th>Teacher ID</th>
                                     <th>First Name</th>
                                     <th>Last Name</th>
                                     <th>Department</th>
@@ -980,12 +977,11 @@ $stmt->close();
                             <tbody>
                                 <?php if ($teachersResult->num_rows === 0): ?>
                                     <tr>
-                                        <td colspan="6" class="has-text-centered">No teachers found in your department.</td>
+                                        <td colspan="5" class="has-text-centered">No teachers found in your department.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php while ($teacher = $teachersResult->fetch_assoc()): ?>
                                         <tr>
-                                            <td data-label="Teacher ID"><?= htmlspecialchars($teacher['TeacherID']) ?></td>
                                             <td data-label="First Name"><?= htmlspecialchars($teacher['FirstName']) ?></td>
                                             <td data-label="Last Name"><?= htmlspecialchars($teacher['LastName']) ?></td>
                                             <td data-label="Department"><?= htmlspecialchars($teacher['Department']) ?></td>
@@ -1037,12 +1033,14 @@ $stmt->close();
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label for="department">Department</label>
-                                    <select id="edit_department" name="department" class="form-control" required>
+                                    <select id="edit_department" name="department" class="form-control" disabled>
                                         <option value="Accountancy">Accountancy</option>
                                         <option value="Computer Science">Computer Science</option>
                                         <option value="Engineering">Engineering</option>
                                         <option value="Business Administration">Business Administration</option>
                                     </select>
+                                    <!-- Hidden input to make sure the value is still submitted with the form -->
+                                    <input type="hidden" name="department" id="hidden_department">
                                 </div>
 
                                 <div class="form-group col-md-6">
@@ -1160,6 +1158,7 @@ $stmt->close();
             document.getElementById('edit_last_name').value = lastName;
             document.getElementById('edit_email').value = email;
             document.getElementById('edit_department').value = department;
+            document.getElementById('hidden_department').value = department;
 
             // Show the modal
             $('#editTeacherModal').modal('show');

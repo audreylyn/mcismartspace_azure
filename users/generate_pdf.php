@@ -1,6 +1,6 @@
 <?php
 require_once '../auth/middleware.php';
-checkAccess(['Teacher']);
+checkAccess(['Student']);
 
 // Check if all required parameters are set
 $requiredParams = [
@@ -40,18 +40,19 @@ $status = $requestData['status'] ?? 'approved';
 $currentDate = date('F j, Y');
 
 // Get user info from session
-$teacherId = $_SESSION['user_id'];
+$studentId = $_SESSION['user_id'];
 db();
 
-// Get teacher information
-$sql = "SELECT FirstName, LastName, Department FROM teacher WHERE TeacherID = ?";
+// Get student information
+$sql = "SELECT FirstName, LastName, Department, Program, YearSection FROM student WHERE StudentID = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $teacherId);
+$stmt->bind_param("i", $studentId);
 $stmt->execute();
 $result = $stmt->get_result();
-$teacher = $result->fetch_assoc();
+$student = $result->fetch_assoc();
 
-
+// Close database connection
+$conn->close();
 
 // HTML content generation
 ?>
@@ -152,6 +153,12 @@ $teacher = $result->fetch_assoc();
         .form-title {
             font-size: 12pt;
             margin: 2px 0;
+        }
+
+        .horizontal-line {
+            border-top: 1px solid #000;
+            margin: 15px 0;
+            opacity: 0.7;
         }
 
         .date-line {
@@ -387,8 +394,8 @@ $teacher = $result->fetch_assoc();
 <body>
 
     <div class="button-container">
-        <button class="action-button" id="backButton" onclick="window.location.href='tc_room_status.php';">
-            <i class="fa fa-arrow-left"></i> Back to Requests
+        <button class="action-button" id="backButton" onclick="window.location.href='users_room_status.php';">
+            <i class="fa fa-arrow-left"></i> Back to Reservation
         </button>
         <button class="action-button" id="downloadPdf">
             <i class="fa fa-download"></i> Download PDF
@@ -437,8 +444,8 @@ $teacher = $result->fetch_assoc();
         </div>
 
         <div class="content">
-            This is to confirm that <?php echo htmlspecialchars($teacher['FirstName'] . ' ' . $teacher['LastName']); ?> from
-            <?php echo htmlspecialchars($teacher['Department']); ?>
+            This is to confirm that <?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?> from
+            <?php echo htmlspecialchars($student['Department'] . ' - ' . $student['Program'] . ' ' . $student['YearSection']); ?>
             has formally requested the use of a room for an upcoming activity.
         </div>
 
@@ -458,6 +465,14 @@ $teacher = $result->fetch_assoc();
             <div class="form-field">
                 <div class="form-label">Date/Time of Activity:</div>
                 <div class="form-value"><?php echo htmlspecialchars($reservationDate . ', ' . $startTime . ' - ' . $endTime); ?></div>
+            </div>
+            <div class="form-field">
+                <div class="form-label">Program/Section:</div>
+                <div class="form-value"><?php echo htmlspecialchars($student['Program'] . ' ' . $student['YearSection']); ?></div>
+            </div>
+            <div class="form-field">
+                <div class="form-label">Department:</div>
+                <div class="form-value"><?php echo htmlspecialchars($student['Department']); ?></div>
             </div>
             <div class="form-field">
                 <div class="form-label">No. of expected participants:</div>

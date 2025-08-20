@@ -1,109 +1,68 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Teacher']);
+checkAccess(['Student']);
 
-// Initialize session if not already started
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Get current teacher ID
-$teacherId = $_SESSION['user_id'];
+// Get current student ID
+$studentId = $_SESSION['user_id'];
 
 // Initialize variables for error/success messages
 $successMsg = "";
 $errorMsg = "";
 
-// Fetch teacher information
-$sql = "SELECT * FROM teacher WHERE TeacherID = ?";
+// Fetch student information
+$sql = "SELECT * FROM student WHERE StudentID = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $teacherId);
+$stmt->bind_param("i", $studentId);
 $stmt->execute();
 $result = $stmt->get_result();
-$teacher = $result->fetch_assoc();
+$student = $result->fetch_assoc();
 $stmt->close();
-
-// Process form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
-    $firstName = trim($_POST['firstName']);
-    $lastName = trim($_POST['lastName']);
-    $email = trim($_POST['email']);
-    $department = trim($_POST['department']);
-
-    // Validation
-    $isValid = true;
-
-    // Basic validation
-    if (empty($firstName) || empty($lastName) || empty($email)) {
-        $errorMsg = "First name, last name, and email are required fields.";
-        $isValid = false;
-    }
-
-    // Email validation
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errorMsg = "Please enter a valid email address.";
-        $isValid = false;
-    }
-
-    // Check if email already exists (but belongs to another teacher)
-    $checkEmailSql = "SELECT TeacherID FROM teacher WHERE Email = ? AND TeacherID != ?";
-    $checkStmt = $conn->prepare($checkEmailSql);
-    $checkStmt->bind_param("si", $email, $teacherId);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-    if ($checkResult->num_rows > 0) {
-        $errorMsg = "This email is already in use by another account.";
-        $isValid = false;
-    }
-    $checkStmt->close();
-
-    // If validation passes, update the teacher information
-    if ($isValid) {
-        $updateSql = "UPDATE teacher SET 
-                      FirstName = ?, 
-                      LastName = ?, 
-                      Email = ?,
-                      Department = ?
-                      WHERE TeacherID = ?";
-
-        $updateStmt = $conn->prepare($updateSql);
-        $updateStmt->bind_param(
-            "ssssi",
-            $firstName,
-            $lastName,
-            $email,
-            $department,
-            $teacherId
-        );
-
-        if ($updateStmt->execute()) {
-            $successMsg = "Profile updated successfully!";
-
-            // Refresh teacher data after update
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $teacherId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $teacher = $result->fetch_assoc();
-            $stmt->close();
-        } else {
-            $errorMsg = "Error updating profile: " . $conn->error;
-        }
-
-        $updateStmt->close();
-    }
-}
 
 // Include room status handler to automatically update room statuses
 require_once '../auth/room_status_handler.php';
 ?>
 
 <?php include "../partials/header.php"; ?>
-<link href="../public/css/user_styles/equipment_report_status.css" rel="stylesheet">
 <link href="../public/css/user_styles/edit_profile.css" rel="stylesheet">
-
 <style>
+    .main-content {
+        margin-top: 30px;
+    }
+
+    /* Delete Account Modal specific styles for mobile */
+    @media (max-width: 768px) {
+        /* Existing mobile styles... */
+
+        #deleteAccountModal .alert-actions {
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        #deleteAccountModal .alert-actions .btn-action {
+            flex: 1;
+            width: 48%;
+            margin: 0;
+            justify-content: center;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 576px) {
+        /* Existing small mobile styles... */
+
+        #deleteAccountModal .alert-actions {
+            flex-direction: row;
+            gap: 8px;
+        }
+
+        #deleteAccountModal .alert-actions .btn-action {
+            font-size: 13px;
+            min-height: 44px;
+            padding: 8px 6px;
+        }
+    }
+
     @media (max-width: 768px) {
         .security-actions {
             flex-direction: column;
@@ -125,13 +84,7 @@ require_once '../auth/room_status_handler.php';
             padding: 8px 12px;
         }
     }
-
-
-    .main-content {
-        margin-top: 30px;
-    }
 </style>
-
 
 <div class="col-md-3 left_col menu_fixed">
     <div class="left_col scroll-view">
@@ -153,7 +106,7 @@ require_once '../auth/room_status_handler.php';
             <div class="menu_section">
                 <ul class="nav side-menu" class="navbar nav_title" style="border: 0;">
                     <li>
-                        <a href="tc_browse_room.php">
+                        <a href="users_browse_room.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0">
                                     <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
@@ -172,7 +125,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li>
-                        <a href="tc_room_status.php">
+                        <a href="users_room_status.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -192,7 +145,7 @@ require_once '../auth/room_status_handler.php';
                         </a>
                     </li>
                     <li>
-                        <a href="tc_reservation_history.php">
+                        <a href="users_reservation_history.php">
                             <div class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M12 8v4l3 3"></path>
@@ -265,36 +218,56 @@ require_once '../auth/room_status_handler.php';
                 <div class="profile-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="firstName">First Name</label>
+                            <label for="firstName">First name</label>
                             <div class="input-with-icon">
-                                <input type="text" id="firstName" name="firstName" value="<?php echo htmlspecialchars($teacher['FirstName']); ?>" readonly>
+                                <input type="text" id="firstName" name="firstName" value="<?php echo htmlspecialchars($student['FirstName'] ?? ''); ?>" readonly>
                             </div>
                         </div>
+
                         <div class="form-group">
-                            <label for="lastName">Last Name</label>
+                            <label for="lastName">Last name</label>
                             <div class="input-with-icon">
-                                <input type="text" id="lastName" name="lastName" value="<?php echo htmlspecialchars($teacher['LastName']); ?>" readonly>
+                                <input type="text" id="lastName" name="lastName" value="<?php echo htmlspecialchars($student['LastName'] ?? ''); ?>" readonly>
                             </div>
                         </div>
                     </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="email">Email</label>
                             <div class="input-with-icon">
-                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($teacher['Email']); ?>" readonly>
-                                <span class="verified-badge"><i class="fa fa-check-circle"></i> Verified</span>
+                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($student['Email'] ?? ''); ?>" readonly>
+                                <span class="verified-badge">
+                                    <i class="fa fa-check-circle"></i> Verified
+                                </span>
                             </div>
                         </div>
+
                         <div class="form-group">
                             <label for="department">Department</label>
                             <div class="input-with-icon">
-                                <input type="text" id="department" name="department" value="<?php echo htmlspecialchars($teacher['Department']); ?>" readonly>
+                                <input type="text" id="department" name="department" value="<?php echo htmlspecialchars($student['Department'] ?? ''); ?>" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="program">Program</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="program" name="program" value="<?php echo htmlspecialchars($student['Program'] ?? ''); ?>" readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="yearSection">Year & Section</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="yearSection" name="yearSection" value="<?php echo htmlspecialchars($student['YearSection'] ?? ''); ?>" readonly>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="profile-card">
                 <div class="card-header bg-modal">
                     <h2 class="bold-personal">Password & Security</h2>
@@ -426,6 +399,41 @@ require_once '../auth/room_status_handler.php';
         const errorType = urlParams.get('error_type');
         const errorMsg = urlParams.get('error_msg');
 
+        // Handle error messages from redirects
+        if (errorType === 'password_change' && errorMsg) {
+            // Show password change modal with error
+            $('#changePasswordModal').modal('show');
+            const errorElement = document.getElementById('passwordChangeError');
+            errorElement.textContent = decodeURIComponent(errorMsg);
+            errorElement.style.display = 'block';
+        } else if (errorType === 'delete_account' && errorMsg) {
+            // Show delete account modal with error
+            $('#deleteAccountModal').modal('show');
+            const errorElement = document.getElementById('deleteAccountError');
+            errorElement.textContent = decodeURIComponent(errorMsg);
+            errorElement.style.display = 'block';
+        }
+
+        // Current password focus handling
+        const currentPasswordInput = document.getElementById('currentPassword');
+        if (currentPasswordInput) {
+            $('#changePasswordModal').on('shown.bs.modal', function() {
+                currentPasswordInput.focus();
+                // Clear any previous error
+                document.getElementById('passwordChangeError').style.display = 'none';
+            });
+        }
+
+        // Verify password focus handling
+        const verifyPasswordInput = document.getElementById('verifyPassword');
+        if (verifyPasswordInput) {
+            $('#deleteAccountModal').on('shown.bs.modal', function() {
+                verifyPasswordInput.focus();
+                // Clear any previous error
+                document.getElementById('deleteAccountError').style.display = 'none';
+            });
+        }
+
         // Add this function to your existing script
         function setupErrorMessageFade() {
             // Get all error message elements
@@ -448,41 +456,9 @@ require_once '../auth/room_status_handler.php';
             });
         }
 
-        // Handle error messages from redirects
-        if (errorType === 'password_change' && errorMsg) {
-            // Show password change modal with error
-            $('#changePasswordModal').modal('show');
-            const errorElement = document.getElementById('passwordChangeError');
-            errorElement.textContent = decodeURIComponent(errorMsg);
-            errorElement.style.display = 'block';
+        // Call the function when showing error messages
+        if (errorType === 'password_change' && errorMsg || errorType === 'delete_account' && errorMsg) {
             setupErrorMessageFade();
-        } else if (errorType === 'delete_account' && errorMsg) {
-            // Show delete account modal with error
-            $('#deleteAccountModal').modal('show');
-            const errorElement = document.getElementById('deleteAccountError');
-            errorElement.textContent = decodeURIComponent(errorMsg);
-            errorElement.style.display = 'block';
-            setupErrorMessageFade();
-        }
-
-        // Current password focus handling
-        const currentPasswordInput = document.getElementById('currentPassword');
-        if (currentPasswordInput) {
-            $('#changePasswordModal').on('shown.bs.modal', function() {
-                currentPasswordInput.focus();
-                // Clear any previous error
-                document.getElementById('passwordChangeError').style.display = 'none';
-            });
-        }
-
-        // Verify password focus handling
-        const verifyPasswordInput = document.getElementById('verifyPassword');
-        if (verifyPasswordInput) {
-            $('#deleteAccountModal').on('shown.bs.modal', function() {
-                verifyPasswordInput.focus();
-                // Clear any previous error
-                document.getElementById('deleteAccountError').style.display = 'none';
-            });
         }
     });
 </script>

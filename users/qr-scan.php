@@ -504,7 +504,7 @@
                     </button>
                 </div>
 
-                <a href="tc_browse_room.php" class="back-button">
+                <a href="users_browse_room.php" class="back-button">
                     Go Back
                 </a>
             </div>
@@ -1114,7 +1114,7 @@
                 const equipmentId = equipmentIdInput.value.trim();
 
                 // Construct URL to report form with parameters
-                const baseUrl = window.location.origin + '/mcmod/teacher/report-equipment-issue.php';
+                const baseUrl = window.location.origin + '/mcmod/student/report-equipment-issue.php';
                 let reportUrl = `${baseUrl}?name=${encodeURIComponent(equipmentName)}&room=${encodeURIComponent(room)}&building=${encodeURIComponent(building)}`;
 
                 // Add ID if provided
@@ -1227,22 +1227,9 @@
                 successAlert.innerHTML = '<i class="fa fa-check-circle"></i> QR Code detected! Redirecting...';
                 document.querySelector('.qr-scan-container').appendChild(successAlert);
 
-                // Check if the URL is for a student page and redirect to our handler instead
-                let redirectUrl = decodedText;
-
-                // If the URL is a direct link to student or teacher report pages
-                if (decodedText.includes('/student/report-equipment-issue.php') ||
-                    decodedText.includes('/teacher/report-equipment-issue.php')) {
-                    // Extract the query parameters
-                    const url = new URL(decodedText);
-                    // Replace with redirect handler
-                    const baseUrl = window.location.origin + '/mcmod/redirect-equipment-report.php';
-                    redirectUrl = baseUrl + url.search;
-                }
-
                 // Navigate to the equipment issue report page after a brief delay
                 setTimeout(() => {
-                    window.location.href = redirectUrl;
+                    window.location.href = decodedText;
                 }, 500);
             }
 
