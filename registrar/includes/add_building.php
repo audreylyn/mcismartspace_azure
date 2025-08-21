@@ -17,15 +17,13 @@ try {
 
         // Validate input values
         if (empty($building_name) || empty($department) || $number_of_floors === false) {
-            $_SESSION['error_message'] = "Please fill all fields with valid values.";
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Please fill all fields with valid values."));
             exit();
         }
 
         // Validate number of floors (maximum 7)
         if ($number_of_floors <= 0 || $number_of_floors > 7) {
-            $_SESSION['error_message'] = "Number of floors must be between 1 and 7.";
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Number of floors must be between 1 and 7."));
             exit();
         }
         
@@ -38,8 +36,7 @@ try {
         $check_stmt->close();
         
         if ($row['count'] > 0) {
-            $_SESSION['error_message'] = "A building with the name '{$building_name}' already exists in the {$department} department.";
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("A building with the name '{$building_name}' already exists in the {$department} department."));
             exit();
         }
 
@@ -49,13 +46,11 @@ try {
 
         if ($stmt->execute()) {
             $stmt->close();
-            $_SESSION['success_message'] = "Building added successfully!";
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&msg=" . urlencode("Building added successfully!"));
             exit();
         } else {
             $stmt->close();
-            $_SESSION['error_message'] = "Error adding building: " . $stmt->error;
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Error adding building: " . $stmt->error));
             exit();
         }
     }
@@ -67,6 +62,7 @@ try {
     $requests = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 } catch (Exception $e) {
-    $error_message = $e->getMessage();
+    header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode($e->getMessage()));
+    exit();
 }
 

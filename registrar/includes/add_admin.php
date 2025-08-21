@@ -13,9 +13,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Basic validation
     if (empty($first_name) || empty($last_name) || empty($department) || empty($email) || empty($password)) {
-        $_SESSION['error_message'] = "All fields are required.";
+        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("All fields are required."));
+        exit;
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['error_message'] = "Invalid email format.";
+        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Invalid email format."));
+        exit;
     } else {
         // Check for duplicate email
         $check_stmt = $conn->prepare("SELECT COUNT(*) FROM dept_admin WHERE Email = ?");
@@ -26,7 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check_stmt->close();
 
         if ($email_count > 0) {
-            $_SESSION['error_message'] = "Email already exists. Please use a different email.";
+            // Email already exists - redirect with error
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Email already exists. Please use a different email."));
+            exit;
         } else {
             // Prepare statement to prevent SQL injection
             $stmt = $conn->prepare("INSERT INTO dept_admin (FirstName, LastName, Department, Email, Password) VALUES (?, ?, ?, ?, ?)");
@@ -41,12 +45,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Execute the statement
                 if ($stmt->execute()) {
+                    $stmt->close();
+                    header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&msg=" . urlencode("Administrator added successfully!"));
+                    exit;
                 } else {
-                    $_SESSION['error_message'] = "Error: " . htmlspecialchars($stmt->error);
+                    $stmt->close();
+                    header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Error: " . htmlspecialchars($stmt->error)));
+                    exit;
                 }
-
-                // Close the statement
-                $stmt->close();
             }
         }
     }
@@ -62,20 +68,21 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     $delete_stmt = $conn->prepare("DELETE FROM dept_admin WHERE AdminID = ?");
 
     if ($delete_stmt === false) {
-        $_SESSION['error_message'] = "Prepare failed: " . htmlspecialchars($conn->error);
+        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Prepare failed: " . htmlspecialchars($conn->error)));
+        exit;
     } else {
         $delete_stmt->bind_param("i", $id);
 
         if ($delete_stmt->execute()) {
+            $delete_stmt->close();
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&msg=" . urlencode("Administrator deleted successfully!"));
+            exit;
         } else {
-            $_SESSION['error_message'] = "Error deleting admin: " . htmlspecialchars($delete_stmt->error);
+            $delete_stmt->close();
+            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Error deleting admin: " . htmlspecialchars($delete_stmt->error)));
+            exit;
         }
-        $delete_stmt->close();
     }
-
-    // Redirect to prevent refresh issues
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
 }
 
 // Fetch all admins

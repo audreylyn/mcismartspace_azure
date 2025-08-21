@@ -5,6 +5,9 @@ require_once __DIR__ . '/../../auth/middleware.php';
 // Create a new database connection
 $db = db();
 
+$status = 'error';
+$message = 'An unknown error occurred.';
+
 // Check if the form was submitted
 if (isset($_POST['importSubmit'])) {
     $file = $_FILES['file']['tmp_name'];
@@ -18,8 +21,8 @@ if (isset($_POST['importSubmit'])) {
     // Validate file type
     $fileType = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
     if ($fileType != 'csv') {
-        $_SESSION['error_message'] = "Only CSV files are allowed.";
-        header("Location: ../reg_add_admin.php");
+        $message = "Only CSV files are allowed.";
+        header("Location: ../reg_add_admin.php?status=$status&msg=" . urlencode($message));
         exit();
     }
 
@@ -47,11 +50,11 @@ if (isset($_POST['importSubmit'])) {
                 
                 // Validate email format
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $invalidEmails[] = "Line $lineNumber: $email (Invalid format)";
+                    $invalidEmails[] = "$email (Invalid format)";
                 }
                 // Validate department
                 elseif (!in_array($department, $validDepartments)) {
-                    $invalidDepartments[] = "Line $lineNumber: $department (Invalid department for $email)";
+                    $invalidDepartments[] = "$department (Invalid department for $email)";
                 }
                 else {
                     // Check for duplicate email
@@ -64,7 +67,7 @@ if (isset($_POST['importSubmit'])) {
 
                     // If a duplicate is found, store the email with line number
                     if ($count > 0) {
-                        $duplicateRecords[] = "Line $lineNumber: $email";
+                        $duplicateRecords[] = "$email";
                     } else {
                         // Hash the password
                         $password = password_hash($rawPassword, PASSWORD_DEFAULT);
@@ -87,43 +90,48 @@ if (isset($_POST['importSubmit'])) {
         // Close the file handle
         fclose($fileHandle);
 
-        // Set session messages based on the import results
-        $messages = [];
-        
+        // Build the response message
+        $successMessage = '';
         if ($imported > 0) {
-            $_SESSION['success_message'] = "Successfully imported $imported administrator(s)!";
+            $successMessage = "Successfully imported $imported administrators";
         }
         
+        $errorMessage = '';
         if (!empty($duplicateRecords) || !empty($invalidEmails) || !empty($invalidDepartments)) {
             $errorMessage = "Some records were not imported:";
             
             if (!empty($duplicateRecords)) {
                 $errorMessage .= "<br><strong>Duplicate Emails:</strong><br>" . implode("<br>", $duplicateRecords);
             }
-            
             if (!empty($invalidEmails)) {
-                $errorMessage .= "<br><strong>Invalid Email Formats:</strong><br>" . implode("<br>", $invalidEmails);
+                $errorMessage .= "<br><strong>Invalid Emails:</strong><br>" . implode("<br>", $invalidEmails);
             }
-            
             if (!empty($invalidDepartments)) {
                 $errorMessage .= "<br><strong>Invalid Departments:</strong><br>" . implode("<br>", $invalidDepartments);
             }
-            
-            $_SESSION['error_message'] = $errorMessage;
-        } else if ($imported == 0) {
-            $_SESSION['error_message'] = "No records were imported. Please check your CSV file format.";
         }
 
-        // Redirect back to the import page
-        header("Location: ../reg_add_admin.php");
-        exit();
+        if (!empty($errorMessage)) {
+            $status = 'error';
+            $message = $successMessage . ($successMessage ? '<br><br>' : '') . $errorMessage;
+        } elseif ($imported > 0) {
+            $status = 'success';
+            $message = $successMessage;
+        } else {
+            $status = 'error';
+            $message = 'No new records were imported.';
+        }
+
     } else {
-        // Handle the case where the uploaded file is empty
-        $_SESSION['error_message'] = "Uploaded file is empty.";
-        header("Location: ../reg_add_admin.php");
-        exit();
+        $message = "The uploaded file is empty.";
     }
 }
 
-// No need to close the database connection, it's handled by the db() function.
+// Close the database connection
+$db->close();
+
+// Redirect back to the admin page
+header("Location: ../reg_add_admin.php?status=$status&msg=" . urlencode($message));
+exit();
+?>
 

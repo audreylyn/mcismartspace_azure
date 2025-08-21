@@ -26,231 +26,25 @@ include "includes/message.php";
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="../public/css/admin_styles/datatables.css">
+    <link rel="stylesheet" href="../public/css/admin_styles/add_admin.css">
+    <link rel="stylesheet" href="../public/css/admin_styles/ajax.css">
 
-    <style>
-        .card-content {
-            padding: 15px;
-        }
-
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal.show {
-            display: block;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 25px;
-            border-radius: 8px;
-            width: 450px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease;
-            position: relative;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            right: 20px;
-            top: 15px;
-        }
-
-        .close:hover {
-            color: #555;
-        }
-
-        .modal h2 {
-            margin-top: 0;
-            color: #333;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .modal-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            margin-top: 15px;
-            transition: all 0.2s;
-        }
-
-        .modal-button:hover {
-            background-color: #45a049;
-            transform: translateY(-1px);
-        }
-
-        /* Action buttons styling */
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-        }
-
-    </style>
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js" defer></script>
+    <script src="../public/js/admin_scripts/main.min.js" defer></script>
+    <script src="../public/js/admin_scripts/custom_alert.js" defer></script>
+    <?php include "layout/admin-scripts.js.php"; ?>
+    <script src="../public/js/admin_scripts/add_admin.js" defer></script>
 </head>
 
 <body>
     <div id="app">
-        <nav id="navbar-main" class="navbar is-fixed-top">
-            <div class="navbar-brand">
-                <a class="navbar-item mobile-aside-button">
-                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
-                </a>
-                <div class="navbar-item">
-                    <section class="is-title-bar">
-                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-                            <ul>
-                                <li>Registrar</li>
-                                <li>Add Admin</li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="navbar-brand is-right">
-                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
-                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
-                </a>
-            </div>
-            <div class="navbar-menu" id="navbar-menu">
-                <div class="navbar-end">
-                    <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link">
-
-                            <span>Hello, Registrar</span>
-                            <span class="icon">
-                                <i class="mdi mdi-chevron-down"></i>
-                            </span>
-                        </a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="../auth/logout.php">
-                                <span class="icon"><i class="mdi mdi-logout"></i></span>
-                                <span>Log Out</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <aside class="aside is-placed-left is-expanded">
-            <div class="aside-tools">
-                <div class="logo">
-                    <a href="#"><img class="meyclogo" src="../public/assets/logo.webp" alt="logo"></a>
-                    <p>MCiSmartSpace</p>
-                </div>
-            </div>
-            <div class="menu is-menu-main">
-                <ul class="menu-list">
-                    <!-- <li>
-                        <a href="../registrar.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                </svg> </span>
-                            <span class="#">Dashboard</span>
-                        </a>
-                    </li> -->
-                </ul>
-                <ul class="menu-list">
-                    <li class="active">
-                        <a href="reg_add_admin.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
-                                    <path d="M16 19h6"></path>
-                                    <path d="M19 16v6"></path>
-                                    <path d="M6 21v-2a4 4 0 0 1 4 -4h4"></path>
-                                </svg></span>
-                            <span class="#">Add Admin</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown" onclick="toggleIcon(this)">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
-                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
-                                    <path d="M16 5l3 3"></path>
-                                </svg></span>
-                            <span class="#">Manage Rooms</span>
-                            <span class="icon toggle-icon"><i class="mdi mdi-plus"></i></span>
-                        </a>
-                        <ul>
-                            <li>
-                                <a href="./reg_add_blg.php">
-                                    <span>Add Building</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="./reg_summary.php">
-                                    <span>Facility Management</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a class="dropdown" onclick="toggleIcon(this)">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
-                                    <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path>
-                                    <path d="M16 5l3 3"></path>
-                                </svg></span>
-                            <span class="#">Manage Equipment</span>
-                            <span class="icon toggle-icon"><i class="mdi mdi-plus"></i></span>
-                        </a>
-                        <ul>
-                            <li>
-                                <a href="./reg_add_equipt.php">
-                                    <span>Add Equipment</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="./reg_assign_equipt.php">
-                                    <span>Assign Equipment</span>
-                                </a>
-                            </li>
-
-                        </ul>
-                    </li>
-                </ul>
-
-            </div>
-        </aside>
-
+        
+        <?php 
+        include 'layout/topnav.php'; 
+        include 'layout/sidebar.php'; 
+        ?>
 
         <div class="all_container">
             <div class="table-container">
@@ -258,17 +52,17 @@ include "includes/message.php";
                     <header class="card-header">
                         <div class="new-title-container dept-list">
                             <p class="new-title">Department Admin List</p>
-                            <a href="includes/export_admin.php" class="batch" style="display: inline-flex; align-items: center; padding: 8px 16px;">
+                            <button id="exportButton" class="batch" style="display: inline-flex; align-items: center; padding: 8px 16px;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 8px;">
                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
                                 </svg>
                                 Export
-                            </a>
+                            </button>
                         </div>
                     </header>
                     <div class="card-content">
-                        <table id="adminTable" class="table is-fullwidth is-striped">
+                        <table id="adminTable" class="adminTable table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
                                     <th>FirstName</th>
@@ -305,7 +99,7 @@ include "includes/message.php";
                                                     </span>
                                                 </button>
                                                 <button class="button is-danger styled-button is-reset"
-                                                    onclick="if(confirm('Are you sure you want to delete this admin?')) window.location.href='?id=<?= htmlspecialchars($row['AdminID']) ?>'">
+                                                    onclick="deleteAdmin(<?= htmlspecialchars($row['AdminID']) ?>)">
                                                     <span class="icon">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
                                                             <path d="M4 7l16 0"></path>
@@ -332,7 +126,7 @@ include "includes/message.php";
                         <div class="new-title-container" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 5px 0 5px 20px;">
                             <p class="new-title">Add Admin</p>
                             <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                                <form action="includes/import_admin.php" class="form-data" method="post" enctype="multipart/form-data" style="display: flex;">
+                                <form id="importForm" class="form-data" method="post" enctype="multipart/form-data" style="display: flex;">
                                     <button class="excel" style="border-radius: 0.3em 0 0 0.3em; display: flex; justify-content: center; width: 50px; padding: 0.5rem;">
                                         <svg
                                             fill="#fff"
@@ -363,7 +157,7 @@ include "includes/message.php";
                                         </svg>
                                         <input type="file" name="file" class="file" accept=".csv" required />
                                     </button>
-                                    <button class="container-btn-file" type="submit" name="importSubmit" style="border-radius: 0 0.3em 0.3em 0;">
+                                    <button id="importButton" class="container-btn-file" type="button" style="border-radius: 0 0.3em 0.3em 0;">
                                         <svg
                                             fill="#fff"
                                             xmlns="http://www.w3.org/2000/svg"
@@ -380,7 +174,8 @@ include "includes/message.php";
                         </div>
                     </header>
                     <div class="card-content">
-                        <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST">
+                        <form id="adminForm" action="includes/add_admin_ajax.php" method="POST">
+                            <input type="hidden" name="action" value="add">
                             <div class="field is-inline">
                                 <div class="control">
                                     <label class="label">First Name:</label>
@@ -449,7 +244,8 @@ include "includes/message.php";
             <div class="modal-content" style="width: 500px; max-width: 90%;">
                 <span class="close" id="closeEditModal">&times;</span>
                 <h2>Edit Administrator</h2>
-                <form id="editAdminForm" method="POST" action="includes/update_admin.php">
+                <form id="editAdminForm">
+                    <input type="hidden" name="action" value="update">
                     <input type="hidden" name="admin_id" id="edit_admin_id">
                     
                     <div class="field">
@@ -493,7 +289,7 @@ include "includes/message.php";
                     <div class="field" style="margin-top: 20px; display: flex; justify-content: flex-end;">
                         <div class="control">
                             <button type="button" class="modal-button" style="background-color: #ccc; margin-right: 10px;" onclick="closeEditModal()">Cancel</button>
-                            <button type="submit" class="modal-button" style="background-color: #ffc107;">Save Changes</button>
+                            <button type="button" id="saveEditButton" class="modal-button" style="background-color: #ffc107;">Save Changes</button>
                         </div>
                     </div>
                 </form>
@@ -505,160 +301,27 @@ include "includes/message.php";
         $conn->close();
         ?>
     </div>
-    <script type="text/javascript" src="../public/js/admin_scripts/main.min.js"></script>
-    <script type="text/javascript" src="../public/js/admin_scripts/custom_alert.js"></script>
-
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    
     <script>
-        $(document).ready(function() {
-            $('#adminTable').DataTable({
-                responsive: true,
-                language: {
-                    search: "_INPUT_",
-                    searchPlaceholder: "Search admins..."
-                },
-                dom: '<"top"lf>rt<"bottom"ip><"clear">',
-                lengthMenu: [
-                    [5, 10, 25, 50, -1],
-                    [5, 10, 25, 50, "All"]
-                ],
-                pageLength: 10,
-                ordering: true,
-                columnDefs: [{
-                    targets: -1,
-                    orderable: false
-                }],
-                order: [[0, 'asc']] // Order by FirstName by default
-            });
-            
-            // Add CSS for better error message formatting
-            $('<style>')
-                .prop('type', 'text/css')
-                .html(`
-                    #modalMessage {
-                        max-height: 300px;
-                        overflow-y: auto;
-                        line-height: 1.4;
-                    }
-                    #modalMessage strong {
-                        display: block;
-                        margin-top: 10px;
-                        color: #d32f2f;
-                    }
-                    .modal-content {
-                        max-width: 500px;
-                    }
-                `)
-                .appendTo('head');
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            const message = urlParams.get('msg');
+
+            if (status && message) {
+                const title = status === 'success' ? 'Success' : 'Error';
+                showModal(title, decodeURIComponent(message), status);
+            }
         });
-
-        // Show alerts on page load if messages exist
-        window.onload = function() {
-            <?php
-            if (isset($_SESSION['success_message'])) {
-                echo 'showCustomAlert("' . addslashes($_SESSION['success_message']) . '", "success");';
-                unset($_SESSION['success_message']);
-            }
-            if (isset($_SESSION['error_message'])) {
-                echo 'showCustomAlert("' . addslashes($_SESSION['error_message']) . '", "error");';
-                unset($_SESSION['error_message']);
-            }
-            ?>
-        }
     </script>
-
-    <!-- Enhanced Modal JavaScript -->
-    <script>
-        // Function to show the message modal
-        function showModal(title, message, type = 'success') {
-            const modal = document.getElementById('messageModal');
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').innerHTML = message;
-
-            // Add the type class for specific styling
-            modal.classList.add(type);
-
-            // Display the modal and add show class for animation
-            modal.style.display = "block";
-
-            // Trigger reflow for animation to work
-            void modal.offsetWidth;
-
-            modal.classList.add('show');
-        }
-
-        // Close the modal when the user clicks on <span> (x)
-        document.getElementById('closeModal').onclick = function() {
-            closeModal();
-        }
-
-        // Close the modal when the user clicks anywhere outside of the modal
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('messageModal')) {
-                closeModal();
-            } else if (event.target == document.getElementById('editModal')) {
-                closeEditModal();
-            }
-        }
-
-        // Function to close message modal with animation
-        function closeModal() {
-            const modal = document.getElementById('messageModal');
-            modal.classList.remove('show');
-
-            // Wait for animation to complete before hiding
-            setTimeout(() => {
-                modal.style.display = "none";
-                modal.classList.remove('success', 'error');
-            }, 300);
-        }
-
-        // Function to open edit modal
-        function openEditModal(adminId, firstName, lastName, department, email) {
-            // Populate form fields with admin data
-            document.getElementById('edit_admin_id').value = adminId;
-            document.getElementById('edit_first_name').value = firstName;
-            document.getElementById('edit_last_name').value = lastName;
-            document.getElementById('edit_department').value = department;
-            document.getElementById('edit_email').value = email;
-
-            // Show the modal
-            const modal = document.getElementById('editModal');
-            modal.style.display = "block";
-
-            // Trigger reflow for animation to work
-            void modal.offsetWidth;
-            modal.classList.add('show');
-        }
-
-        // Function to close edit modal
-        function closeEditModal() {
-            const modal = document.getElementById('editModal');
-            modal.classList.remove('show');
-
-            // Wait for animation to complete before hiding
-            setTimeout(() => {
-                modal.style.display = "none";
-            }, 300);
-        }
-
-        // Close the edit modal when the user clicks on <span> (x)
-        document.getElementById('closeEditModal').onclick = function() {
-            closeEditModal();
-        }
-
-        // Show the modal if there are messages
-        <?php if ($success_message): ?>
-            showModal("Success", "<?php echo addslashes($success_message); ?>", "success");
-        <?php endif; ?>
-
-        <?php if ($error_message): ?>
-            showModal("Error", `<?php echo str_replace('`', '\`', $error_message); ?>`, "error");
-        <?php endif; ?>
-    </script>
+    
+    <!-- AJAX Loader -->
+    <div class="ajax-loader" id="ajaxLoader">
+        <div class="ajax-loader-content">
+            <div class="ajax-loader-spinner"></div>
+            <div id="ajaxLoaderText">Processing...</div>
+        </div>
+    </div>
 </body>
 
 </html>
