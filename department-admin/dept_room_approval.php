@@ -9,49 +9,7 @@ require_once '../auth/room_status_handler.php';
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
-// Process approve/reject actions
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['approve_request'])) {
-        $requestId = intval($_POST['request_id']);
-        $adminId = $_SESSION['user_id'];
-        $adminFirstName = $_SESSION['firstname'];
-        $adminLastName = $_SESSION['lastname'];
-        
-        // Update request with approved status and admin info
-        $sql = "UPDATE room_requests SET Status = 'approved', ApprovedBy = ?, ApproverFirstName = ?, ApproverLastName = ? WHERE RequestID = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("isss", $adminId, $adminFirstName, $adminLastName, $requestId);
-
-        if ($stmt->execute()) {
-            $_SESSION['success_message'] = "Request approved successfully";
-        } else {
-            $_SESSION['error_message'] = "Error: " . $stmt->error;
-        }
-        $stmt->close();
-    } elseif (isset($_POST['reject_request'])) {
-        $requestId = intval($_POST['request_id']);
-        $rejectionReason = trim($_POST['rejection_reason']);
-        $adminId = $_SESSION['user_id'];
-        $adminFirstName = $_SESSION['firstname'];
-        $adminLastName = $_SESSION['lastname'];
-
-        $sql = "UPDATE room_requests SET Status = 'rejected', RejectionReason = ?, RejectedBy = ?, RejecterFirstName = ?, RejecterLastName = ? WHERE RequestID = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sisss", $rejectionReason, $adminId, $adminFirstName, $adminLastName, $requestId);
-
-        if ($stmt->execute()) {
-            $_SESSION['success_message'] = "Request rejected successfully";
-        } else {
-            $_SESSION['error_message'] = "Error: " . $stmt->error;
-        }
-        $stmt->close();
-    }
-
-    // Redirect to prevent form resubmission
-    header("Location: dept_room_approval.php");
-    exit();
-}
+require 'includes/approve-reject.php';
 ?>
 
 <!DOCTYPE html>
@@ -134,157 +92,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         #clearFilters:hover {
             background-color: #e0e0e0;
         }
+
+        .predefined-reasons {
+            margin-bottom: 15px;
+        }
+
+        .reason-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+
+        .reason-option {
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reason-option:hover {
+            background-color: #e6e6e6;
+            border-color: #999;
+        }
     </style>
 
 </head>
 
 <body>
     <div id="app">
-        <nav id="navbar-main" class="navbar is-fixed-top">
-            <div class="navbar-brand">
-                <a class="navbar-item mobile-aside-button">
-                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
-                </a>
-                <div class="navbar-item">
-                    <section class="is-title-bar">
-                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-                            <ul>
-                                <li>Department Admin</li>
-                                <li>Room Approval</li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="navbar-brand is-right">
-                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
-                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
-                </a>
-            </div>
-            <div class="navbar-menu" id="navbar-menu">
-                <div class="navbar-end">
-                    <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link">
-
-                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
-                            <span class="icon">
-                                <i class="mdi mdi-chevron-down"></i>
-                            </span>
-                        </a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="../auth/logout.php">
-                                <span class="icon"><i class="mdi mdi-logout"></i></span>
-                                <span>Log Out</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <aside class="aside is-placed-left is-expanded">
-            <div class="aside-tools">
-                <div class="logo">
-                    <a href="#"><img class="meyclogo" src="../public/assets/logo.webp" alt="logo"></a>
-                    <p>MCiSmartSpace</p>
-                </div>
-            </div>
-            <div class="menu is-menu-main">
-                <ul class="menu-list">
-                    <li>
-                        <a href="dept-admin.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                </svg> </span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
-                <ul class="menu-list">
-                    <li class="active">
-                        <a href="#">
-                            <span class="icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0" data-lov-id="src/components/layout/Sidebar.tsx:89:20" data-lov-name="Icon" data-component-path="src/components/layout/Sidebar.tsx" data-component-line="89" data-component-file="Sidebar.tsx" data-component-name="Icon" data-component-content="%7B%22className%22%3A%22flex-shrink-0%22%7D">
-                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                                    <path d="M10 6h4"></path>
-                                    <path d="M10 10h4"></path>
-                                    <path d="M10 14h4"></path>
-                                    <path d="M10 18h4"></path>
-                                </svg>
-                            </span>
-                            <span>Room Approval</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown" onclick="toggleIcon(this)">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
-                                    <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                    <path d="M21 21v-2a4 4 0 0 0 -3 -3.85"></path>
-                                </svg></span>
-                            <span class="#">Manage Accounts</span>
-                            <span class="icon toggle-icon"><i class="mdi mdi-plus"></i></span>
-                        </a>
-                        <ul>
-                            <li>
-                                <a href="dept_add_teacher.php">
-                                    <span>Add Teacher</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_add_student.php">
-                                    <span>Add Student</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_teachers.php">
-                                    <span>Edit Teachers</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_students.php">
-                                    <span>Edit Students</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="dept_equipment_report.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c.996.608 2.296.07 2.572-1.065z"></path>
-                                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
-                                </svg></span>
-                            <span>Equipment Report</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="qr_generator.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code">
-                                    <rect width="5" height="5" x="3" y="3" rx="1"></rect>
-                                    <rect width="5" height="5" x="16" y="3" rx="1"></rect>
-                                    <rect width="5" height="5" x="3" y="16" rx="1"></rect>
-                                    <path d="M21 16h-3a2 2 0 0 0-2 2v3"></path>
-                                    <path d="M21 21v.01"></path>
-                                    <path d="M12 7v3a2 2 0 0 1-2 2H7"></path>
-                                    <path d="M3 12h.01"></path>
-                                    <path d="M12 3h.01"></path>
-                                    <path d="M12 16v.01"></path>
-                                    <path d="M16 12h1"></path>
-                                    <path d="M21 12v.01"></path>
-                                    <path d="M12 21v-1"></path>
-                                </svg></span>
-                            <span>QR Generator</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </aside>
+        <?php include 'layout/topnav.php'; ?>
+        <?php include 'layout/sidebar.php'; ?>
 
 
         <div class="main-container">
@@ -552,7 +394,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="modal-body">
                     <form id="rejectForm" method="POST">
                         <input type="hidden" id="rejectRequestId" name="request_id">
-                        <label for="rejection_reason">Please provide a reason for rejecting this request:</label>
+                        <div class="predefined-reasons">
+                            <label>Select a reason or enter your own:</label>
+                            <div class="reason-options">
+                                <button type="button" class="reason-option" onclick="selectReason('Room unavailable due to maintenance')">Room unavailable</button>
+                                <button type="button" class="reason-option" onclick="selectReason('Scheduling conflict with another event')">Scheduling conflict</button>
+                                <button type="button" class="reason-option" onclick="selectReason('Insufficient information provided')">Insufficient info</button>
+                                <button type="button" class="reason-option" onclick="selectReason('Exceeds room capacity')">Exceeds capacity</button>
+                                <button type="button" class="reason-option" onclick="selectReason('Request does not meet department policy')">Policy violation</button>
+                            </div>
+                        </div>
+                        <label for="rejection_reason">Reason for rejection:</label>
                         <textarea id="rejection_reason" name="rejection_reason" rows="4" required></textarea>
                         <div class="modal-footer">
                             <button type="button" onclick="closeRejectModal()" class="modal-btn modal-btn-cancel">Cancel</button>
@@ -639,6 +491,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         function closeRejectModal() {
             document.getElementById('rejectModal').style.display = 'none';
             document.getElementById('rejection_reason').value = '';
+        }
+        
+        // Function to select a predefined rejection reason
+        function selectReason(reason) {
+            document.getElementById('rejection_reason').value = reason;
         }
 
         // Request details modal functions

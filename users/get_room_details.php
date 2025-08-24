@@ -1,8 +1,9 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
-db();
+require_once '../auth/dbh.inc.php';
+$conn = db();
 
 // Validate input
 if (!isset($_GET['room_id']) || !is_numeric($_GET['room_id'])) {
@@ -34,7 +35,7 @@ try {
     // Get equipment for this room
     $equipment = [];
     $equipmentStmt = $conn->prepare("
-        SELECT e.name, re.quantity, re.status, re.statusCondition, e.description
+        SELECT e.name, re.quantity, re.status, e.description
         FROM room_equipment re
         JOIN equipment e ON re.equipment_id = e.id
         WHERE re.room_id = ?
@@ -78,3 +79,4 @@ try {
 } finally {
     $conn->close();
 }
+

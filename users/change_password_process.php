@@ -1,9 +1,10 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
-// Get student ID from session
-$studentId = $_SESSION['user_id'];
+// Get user ID and role from session
+$userId = $_SESSION['user_id'];
+$userRole = $_SESSION['role'];
 
 // Process password change
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -26,10 +27,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If no validation errors, proceed
     if (empty($errorMsg)) {
+        // Determine which table and ID field to use based on user role
+        if ($userRole == 'Student') {
+            $table = 'student';
+            $idField = 'StudentID';
+        } else if ($userRole == 'Teacher') {
+            $table = 'teacher';
+            $idField = 'TeacherID';
+        }
+        
         // First, get the current hashed password
-        $sql = "SELECT Password FROM student WHERE StudentID = ?";
+        $sql = "SELECT Password FROM $table WHERE $idField = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $studentId);
+        $stmt->bind_param("i", $userId);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -43,9 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $new_hashed_password = password_hash($newPassword, PASSWORD_DEFAULT);
 
                 // Update the password with the new hash
-                $updateSql = "UPDATE student SET Password = ? WHERE StudentID = ?";
+                $updateSql = "UPDATE $table SET Password = ? WHERE $idField = ?";
                 $updateStmt = $conn->prepare($updateSql);
-                $updateStmt->bind_param("si", $new_hashed_password, $studentId);
+                $updateStmt->bind_param("si", $new_hashed_password, $userId);
 
                 if ($updateStmt->execute()) {
                     $_SESSION['success_message'] = "Password changed successfully!";

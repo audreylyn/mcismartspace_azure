@@ -53,7 +53,7 @@ checkAccess(['Registrar']);
                         </div>
                     </header>
                     <div class="card-content">
-                        <table id="assignTable" class="table is-fullwidth is-striped">
+                        <table id="assignTable" class="adminTable table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
                                     <th>Name</th>

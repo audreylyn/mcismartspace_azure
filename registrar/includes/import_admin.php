@@ -20,26 +20,36 @@ if (isset($_POST['importSubmit'])) {
 
     // Validate file type
     $fileType = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-    if ($fileType != 'csv') {
-        $message = "Only CSV files are allowed.";
+    if (!in_array(strtolower($fileType), ['csv', 'xlsx', 'xls'])) {
+        $message = "Only CSV and Excel files are allowed (.csv, .xlsx, .xls).";
         header("Location: ../reg_add_admin.php?status=$status&msg=" . urlencode($message));
         exit();
     }
 
     // Check if the uploaded file is not empty
     if ($_FILES['file']['size'] > 0) {
-        // Open the CSV file for reading
-        $fileHandle = fopen($file, 'r');
+        // Initialize variables
+        $imported = 0;
+        $lineNumber = 1;
+        $duplicateRecords = [];
+        $invalidEmails = [];
+        $invalidDepartments = [];
+        $successRecords = [];
         
-        // Skip the header row
-        fgetcsv($fileHandle);
-        $lineNumber++;
+        // Handle different file types
+        if (strtolower($fileType) === 'csv') {
+            // Handle CSV files
+            $fileHandle = fopen($file, 'r');
+            
+            // Skip the header row
+            fgetcsv($fileHandle);
+            $lineNumber++;
 
-        // List of valid departments
-        $validDepartments = ['Accountancy', 'Business Administration', 'Hospitality Management', 'Education and Arts', 'Criminal Justice'];
-
-        // Process each row in the CSV file
-        while (($row = fgetcsv($fileHandle, 1000, ",")) !== FALSE) {
+            // List of valid departments
+            $validDepartments = ['Accountancy', 'Business Administration', 'Hospitality Management', 'Education and Arts', 'Criminal Justice'];
+            
+            // Process each row in the CSV file
+            while (($row = fgetcsv($fileHandle, 1000, ",")) !== FALSE) {
             // Ensure the row has enough columns
             if (count($row) >= 5) {
                 $firstName = trim($row[0]);
@@ -89,6 +99,13 @@ if (isset($_POST['importSubmit'])) {
 
         // Close the file handle
         fclose($fileHandle);
+        
+        } else {
+            // Handle Excel files (requires PHPSpreadsheet or similar)
+            $message = "Excel file support is not yet implemented. Please use CSV format for now.";
+            header("Location: ../reg_add_admin.php?status=$status&msg=" . urlencode($message));
+            exit();
+        }
 
         // Build the response message
         $successMessage = '';

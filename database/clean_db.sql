@@ -129,6 +129,7 @@ CREATE TABLE room_requests (
     NumberOfParticipants INT NOT NULL,
     Status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     RejectionReason TEXT,
+    reference_number VARCHAR(15) DEFAULT NULL,
     PRIMARY KEY (RequestID),
     FOREIGN KEY (StudentID) REFERENCES student(StudentID) ON DELETE CASCADE,
     FOREIGN KEY (TeacherID) REFERENCES teacher(TeacherID) ON DELETE CASCADE,
@@ -182,6 +183,8 @@ CREATE TABLE equipment_issues (
   reported_at TIMESTAMP NOT NULL DEFAULT current_timestamp(),
   resolved_at TIMESTAMP NULL DEFAULT NULL,
   image_path VARCHAR(255) DEFAULT NULL,
+  reference_number VARCHAR(15) DEFAULT NULL,
+  rejection_reason TEXT DEFAULT NULL,
   FOREIGN KEY (student_id) REFERENCES student(StudentID) ON DELETE CASCADE,
   FOREIGN KEY (teacher_id) REFERENCES teacher(TeacherID) ON DELETE CASCADE,
   FOREIGN KEY (equipment_id) REFERENCES equipment(id)
@@ -296,5 +299,31 @@ CREATE TABLE login_attempts (
 
 
 UPDATE room_equipment SET status = 'working' WHERE status IS NULL;
+
+-- =========================
+-- Triggers for Reference Numbers
+-- =========================
+
+-- Trigger for equipment issues reference numbers
+DELIMITER //
+CREATE TRIGGER before_equipment_issue_insert
+BEFORE INSERT ON equipment_issues
+FOR EACH ROW
+BEGIN
+    IF NEW.reference_number IS NULL THEN
+        SET NEW.reference_number = CONCAT('EQ', LPAD(FLOOR(RAND() * 1000000), 6, '0'));
+    END IF;
+END//
+
+-- Trigger for room requests reference numbers
+CREATE TRIGGER before_room_request_insert
+BEFORE INSERT ON room_requests
+FOR EACH ROW
+BEGIN
+    IF NEW.reference_number IS NULL THEN
+        SET NEW.reference_number = CONCAT('RM', LPAD(FLOOR(RAND() * 1000000), 6, '0'));
+    END IF;
+END//
+DELIMITER ;
 
 COMMIT;

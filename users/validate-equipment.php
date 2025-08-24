@@ -1,6 +1,6 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 // Initialize response array
 $response = [

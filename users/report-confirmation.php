@@ -1,6 +1,6 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 // Initialize session if not already started
 if (session_status() == PHP_SESSION_NONE) {
@@ -10,9 +10,15 @@ if (session_status() == PHP_SESSION_NONE) {
 // Check if we have a success message
 $successMessage = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : "Your report has been submitted successfully!";
 
-// Clear the message to prevent it from showing again on refresh
+// Get the reference number if available
+$referenceNumber = isset($_SESSION['report_reference']) ? $_SESSION['report_reference'] : 'EQ' . rand(100000, 999999);
+
+// Clear the messages to prevent them from showing again on refresh
 if (isset($_SESSION['success_message'])) {
     unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['report_reference'])) {
+    unset($_SESSION['report_reference']);
 }
 ?>
 
@@ -43,7 +49,7 @@ if (isset($_SESSION['success_message'])) {
 
                 <div class="reference-number">
                     <div class="reference-label">Reference Number</div>
-                    <div class="reference-value"><?php echo 'EQ' . rand(100000, 999999); ?></div>
+                    <div class="reference-value"><?php echo $referenceNumber; ?></div>
                 </div>
 
                 <div class="btn-container">

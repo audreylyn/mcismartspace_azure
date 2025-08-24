@@ -219,22 +219,13 @@ class SessionManager {
      * Redirect to login with message
      */
     private function redirectToLogin($message = '') {
-        $scriptPath = $_SERVER['SCRIPT_NAME'];
+        // Simple redirect to the login page
+        $loginUrl = '/mcmod3/index.php';
         
-        // Determine base path
-        if (strpos($scriptPath, '/views/') !== false) {
-            $basePath = dirname(dirname($scriptPath));
-        } else {
-            $basePath = dirname($scriptPath);
-        }
-        
-        if ($basePath === '/') {
-            $basePath = '';
-        }
-        
-        $loginUrl = $basePath . '/index.php';
-        
-        if ($message) {
+        // Add timeout error parameter if no specific message
+        if (!$message) {
+            $loginUrl .= '?error=timeout';
+        } elseif ($message) {
             $loginUrl .= '?' . $message;
         }
         

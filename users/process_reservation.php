@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($insertStmt->execute()) {
         $_SESSION['success_message'] = "Your room reservation request has been submitted successfully. Please check the request status page for updates.";
-        header("Location: users_room_status.php");
+        header("Location: users_reservation_history.php");
         exit();
     } else {
         $_SESSION['error_message'] = "Error submitting request: " . $insertStmt->error;

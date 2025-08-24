@@ -11,13 +11,40 @@ if (session_status() == PHP_SESSION_NONE) {
 $userRole = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 
-// Get equipment details from query parameters
+// Get equipment details from query parameters or sessionStorage
 $equipmentId = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
 $equipmentName = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : '';
 $roomName = isset($_GET['room']) ? htmlspecialchars($_GET['room']) : '';
 $buildingName = isset($_GET['building']) ? htmlspecialchars($_GET['building']) : '';
 
+// Initialize variables for equipment type (will be filled from database)
+$equipmentType = '';
+
 $conn = db();
+
+// Check if we need to add reference_number column
+$checkRefNumColumnSql = "SHOW COLUMNS FROM equipment_issues LIKE 'reference_number'";
+$refNumColumnExists = $conn->query($checkRefNumColumnSql)->num_rows > 0;
+
+if (!$refNumColumnExists) {
+    // Add reference_number column to the table
+    $alterTableSql = "ALTER TABLE equipment_issues ADD COLUMN reference_number VARCHAR(15) DEFAULT NULL";
+    $conn->query($alterTableSql);
+    
+    // Update existing records with reference numbers
+    $updateExistingRecordsSql = "UPDATE equipment_issues SET reference_number = CONCAT('EQ', LPAD(id, 6, '0')) WHERE reference_number IS NULL";
+    $conn->query($updateExistingRecordsSql);
+}
+
+// Check if we need to add rejection_reason column
+$checkRejectionColumnSql = "SHOW COLUMNS FROM equipment_issues LIKE 'rejection_reason'";
+$rejectionColumnExists = $conn->query($checkRejectionColumnSql)->num_rows > 0;
+
+if (!$rejectionColumnExists) {
+    // Add rejection_reason column to the table
+    $alterTableSql = "ALTER TABLE equipment_issues ADD COLUMN rejection_reason TEXT DEFAULT NULL";
+    $conn->query($alterTableSql);
+}
 
 // Attempt to get equipment ID if not provided but name is available
 if (empty($equipmentId) && !empty($equipmentName) && !empty($roomName)) {
@@ -51,10 +78,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
     $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
     $userRole = $_SESSION['role']; // Get user role from session
     $imagePath = null;
+    
+    // Get equipment_id from POST data if it exists (for manual entry), otherwise use the one from URL
+    $formEquipmentId = isset($_POST['equipment_id']) ? intval($_POST['equipment_id']) : null;
+    $finalEquipmentId = $formEquipmentId ?: $equipmentId;
 
-    // Verify the user ID exists in the database
-    if ($userId) {
-        // Use different table based on user role
+    // Check if there's already an open report for this equipment
+    $checkReportSql = "SELECT ei.id, ei.status, re.status AS equipment_status 
+                      FROM equipment_issues ei 
+                      JOIN room_equipment re ON ei.equipment_id = re.equipment_id 
+                      WHERE ei.equipment_id = ? AND (ei.status = 'pending' OR ei.status = 'in_progress')";
+    $checkReportStmt = $conn->prepare($checkReportSql);
+    $checkReportStmt->bind_param("i", $finalEquipmentId);
+    $checkReportStmt->execute();
+    $reportResult = $checkReportStmt->get_result();
+    
+    // Check if equipment has non-working status
+    $checkEquipmentSql = "SELECT status FROM room_equipment WHERE equipment_id = ? AND status IN ('needs_repair', 'maintenance', 'missing')";
+    $checkEquipmentStmt = $conn->prepare($checkEquipmentSql);
+    $checkEquipmentStmt->bind_param("i", $finalEquipmentId);
+    $checkEquipmentStmt->execute();
+    $equipmentResult = $checkEquipmentStmt->get_result();
+    
+    // Prevent submission if equipment already has an open report or is in non-working state
+    if ($reportResult->num_rows > 0 || $equipmentResult->num_rows > 0) {
+        $reportData = $reportResult->fetch_assoc();
+        $equipmentData = $equipmentResult->fetch_assoc();
+        
+        if ($reportResult->num_rows > 0) {
+            $error_message = "This equipment already has an open report that needs to be resolved by the department admin. Please check the status of your existing report.";
+        } else {
+            $status = $equipmentData['status'];
+            $readableStatus = str_replace('_', ' ', $status);
+            $error_message = "This equipment is currently marked as '$readableStatus'. It needs to be resolved by the department admin before new reports can be submitted.";
+        }
+        $checkReportStmt->close();
+        $checkEquipmentStmt->close();
+    } else {
+        $checkReportStmt->close();
+        $checkEquipmentStmt->close();
+
+        // Verify the user ID exists in the database
+        if ($userId) {
+            // Use different table based on user role
         if ($userRole === 'Student') {
             $checkUserSql = "SELECT StudentID FROM student WHERE StudentID = ?";
             $userIdField = "StudentID";
@@ -104,27 +170,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
 
     // Only proceed with insert if we have a valid user ID and no errors
     if ($userId && !isset($error_message)) {
+        // Generate a unique reference number with current timestamp
+        $timestamp = time();
+        $referenceNumber = 'EQ' . str_pad(mt_rand(1, 999999), 6, '0', STR_PAD_LEFT);
+        
         // Prepare SQL statement to insert report with image path based on user role
         if ($userRole === 'Student') {
-            $sql = "INSERT INTO equipment_issues (equipment_id, student_id, issue_type, description, image_path, status, statusCondition, reported_at) 
-                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW())";
+            $sql = "INSERT INTO equipment_issues (equipment_id, student_id, issue_type, description, image_path, status, reported_at, reference_number) 
+                    VALUES (?, ?, ?, ?, ?, 'pending', NOW(), ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iissss", $equipmentId, $userId, $issueType, $description, $imagePath, $condition);
+            $stmt->bind_param("iissss", $finalEquipmentId, $userId, $issueType, $description, $imagePath, $referenceNumber);
         } else { // Teacher
-            $sql = "INSERT INTO equipment_issues (equipment_id, teacher_id, issue_type, description, image_path, status, statusCondition, reported_at) 
-                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW())";
+            $sql = "INSERT INTO equipment_issues (equipment_id, teacher_id, issue_type, description, image_path, status, reported_at, reference_number) 
+                    VALUES (?, ?, ?, ?, ?, 'pending', NOW(), ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iissss", $equipmentId, $userId, $issueType, $description, $imagePath, $condition);
+            $stmt->bind_param("iissss", $finalEquipmentId, $userId, $issueType, $description, $imagePath, $referenceNumber);
         }
 
         // Execute the statement
         try {
             if ($stmt->execute()) {
                 // Also update the equipment status in room_equipment table
-                $updateEquipment = "UPDATE room_equipment SET status = ?, statusCondition = ?, last_updated = NOW() 
+                $updateEquipment = "UPDATE room_equipment SET status = ?, last_updated = NOW() 
                                     WHERE equipment_id = ?";
                 $updateStmt = $conn->prepare($updateEquipment);
-                $updateStmt->bind_param("ssi", $condition, $condition, $equipmentId);
+                $updateStmt->bind_param("si", $condition, $finalEquipmentId);
                 $updateStmt->execute();
 
                 // Create an audit log entry
@@ -133,11 +203,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
                 $auditStmt = $conn->prepare($auditSql);
                 $roleText = ($userRole === 'Student') ? 'student' : 'teacher';
                 $auditNotes = "Issue reported by $roleText ID: $userId - Type: $issueType";
-                $auditStmt->bind_param("is", $equipmentId, $auditNotes);
+                $auditStmt->bind_param("is", $finalEquipmentId, $auditNotes);
                 $auditStmt->execute();
 
                 // Set success message
                 $_SESSION['success_message'] = "Your report has been submitted successfully! The issue will be addressed by the maintenance team.";
+                
+                // Store the reference number in session for the confirmation page
+                $_SESSION['report_reference'] = $referenceNumber;
 
                 // Redirect to confirmation page
                 header("Location: report-confirmation.php");
@@ -187,6 +260,9 @@ if (!$tableExists) {
         $addColumnSql = "ALTER TABLE equipment_issues ADD COLUMN image_path VARCHAR(255) DEFAULT NULL";
         $conn->query($addColumnSql);
     }
+} // End of database structure check
+
+// Close the if block for form submission
 }
 ?>
 
@@ -296,6 +372,56 @@ if (!$tableExists) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if equipment info is empty and try to load from sessionStorage
+            const equipmentId = '<?php echo $equipmentId; ?>';
+            const equipmentName = '<?php echo $equipmentName; ?>';
+            const roomName = '<?php echo $roomName; ?>';
+            const buildingName = '<?php echo $buildingName; ?>';
+            
+            // If any equipment data is missing, try to load from sessionStorage
+            if (!equipmentId || !equipmentName || !roomName || !buildingName) {
+                const scannedEquipment = sessionStorage.getItem('scannedEquipment');
+                if (scannedEquipment) {
+                    try {
+                        const equipmentData = JSON.parse(scannedEquipment);
+                        
+                        // Update the display elements
+                        const infoValues = document.querySelectorAll('.info-value');
+                        if (infoValues.length >= 4) {
+                            if (!equipmentId && equipmentData.equipment_id) {
+                                infoValues[0].textContent = equipmentData.equipment_id;
+                            }
+                            if (!equipmentName && equipmentData.name) {
+                                infoValues[1].textContent = equipmentData.name;
+                            }
+                            if (!roomName && equipmentData.room) {
+                                infoValues[2].textContent = equipmentData.room;
+                            }
+                            if (!buildingName && equipmentData.building) {
+                                infoValues[3].textContent = equipmentData.building;
+                            }
+                        }
+                        
+                        // Store equipment data in hidden inputs for form submission
+                        const form = document.querySelector('form');
+                        if (form && equipmentData.equipment_id) {
+                            // Create hidden input for equipment_id if it doesn't exist
+                            let hiddenEquipmentId = form.querySelector('input[name="equipment_id"]');
+                            if (!hiddenEquipmentId) {
+                                hiddenEquipmentId = document.createElement('input');
+                                hiddenEquipmentId.type = 'hidden';
+                                hiddenEquipmentId.name = 'equipment_id';
+                                form.appendChild(hiddenEquipmentId);
+                            }
+                            hiddenEquipmentId.value = equipmentData.equipment_id;
+                        }
+                        
+                    } catch (e) {
+                        console.error('Error parsing equipment data from sessionStorage:', e);
+                    }
+                }
+            }
+
             // Image preview functionality
             const imageUpload = document.getElementById('image_upload');
             const imagePreview = document.getElementById('image-preview');

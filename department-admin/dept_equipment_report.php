@@ -25,47 +25,7 @@ include 'includes/equipment_report.php'
 
 <body>
     <div id="app">
-        <nav id="navbar-main" class="navbar is-fixed-top">
-            <div class="navbar-brand">
-                <a class="navbar-item mobile-aside-button">
-                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
-                </a>
-                <div class="navbar-item">
-                    <section class="is-title-bar">
-                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-                            <ul>
-                                <li>Department Admin</li>
-                                <li>Equipment Issue Reports</li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="navbar-brand is-right">
-                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
-                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
-                </a>
-            </div>
-            <div class="navbar-menu" id="navbar-menu">
-                <div class="navbar-end">
-                    <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link">
-
-                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
-                            <span class="icon">
-                                <i class="mdi mdi-chevron-down"></i>
-                            </span>
-                        </a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="../auth/logout.php">
-                                <span class="icon"><i class="mdi mdi-logout"></i></span>
-                                <span>Log Out</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php include 'layout/topnav.php'; ?>
 
         <aside class="aside is-placed-left is-expanded">
             <div class="aside-tools">
@@ -118,23 +78,13 @@ include 'includes/equipment_report.php'
                         </a>
                         <ul>
                             <li>
-                                <a href="dept_add_teacher.php">
-                                    <span>Add Teacher</span>
+                                <a href="manage_teachers.php">
+                                    <span>Manage Teachers</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="dept_add_student.php">
-                                    <span>Add Student</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_teachers.php">
-                                    <span>Edit Teachers</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_students.php">
-                                    <span>Edit Students</span>
+                                <a href="manage_students.php">
+                                    <span>Manage Students</span>
                                 </a>
                             </li>
                         </ul>
@@ -219,16 +169,7 @@ include 'includes/equipment_report.php'
                             <!-- Custom filters above the table -->
                             <div style="background-color: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1rem;">
-                                    <div>
-                                        <label style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.375rem; display: block; font-weight: 500;">Status</label>
-                                        <select id="status-filter" class="form-select" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem;">
-                                            <option value="">All Status</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="in_progress">In Progress</option>
-                                            <option value="resolved">Resolved</option>
-                                            <option value="rejected">Rejected</option>
-                                        </select>
-                                    </div>
+
                                     <div>
                                         <label style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.375rem; display: block; font-weight: 500;">Date Range</label>
                                         <select id="date-filter" class="form-select" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem;">
@@ -263,11 +204,7 @@ include 'includes/equipment_report.php'
                                     </div>
                                 </div>
 
-                                <!-- Standalone search bar -->
-                                <div style="width: 100%;">
-                                    <label style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.375rem; display: block; font-weight: 500;">Search</label>
-                                    <input type="text" id="customSearch" class="form-select" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem;" placeholder="Search by equipment, room, student...">
-                                </div>
+
                             </div>
 
                             <!-- Show entries dropdown -->
@@ -282,12 +219,31 @@ include 'includes/equipment_report.php'
                                     </select>
                                     <span style="margin-left: 0.5rem; font-weight: 500;">entries</span>
                                 </div>
+
+                                <div>
+                                    <label style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.375rem; display: block; font-weight: 500;">Status</label>
+                                    <select id="status-filter" class="form-select" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem;">
+                                        <option value="">All Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+
+                                <!-- Standalone search bar -->
+                                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 1rem;">
+                                    <div>
+                                        <label style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.375rem; display: block; font-weight: 500;">Search</label>
+                                        <input type="text" id="customSearch" class="form-select" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem;" placeholder="Search by equipment, room, student...">
+                                    </div>
+                                </div>
                             </div>
 
                             <table id="equipmentReportTable" class="table is-fullwidth is-striped">
                                 <thead>
                                     <tr class="titles">
-                                        <th>ID</th>
+                                        <th>Reference Number</th>
                                         <th>Equipment</th>
                                         <th>Location</th>
                                         <th>Issue Type</th>
@@ -302,15 +258,12 @@ include 'includes/equipment_report.php'
                                     <?php if ($reportsResult->num_rows > 0): ?>
                                         <?php while ($row = $reportsResult->fetch_assoc()): ?>
                                             <tr>
-                                                <td data-label="ID">#<?php echo $row['id']; ?></td>
+                                                <td data-label="Reference Number"><span class="reference-number"><?php echo !empty($row['reference_number']) ? htmlspecialchars($row['reference_number']) : 'EQ' . str_pad($row['id'], 6, '0', STR_PAD_LEFT); ?></span></td>
                                                 <td data-label="Equipment"><?php echo htmlspecialchars($row['equipment_name']); ?></td>
                                                 <td data-label="Location"><?php echo htmlspecialchars($row['room_name'] ?? 'N/A') . ' (' . htmlspecialchars($row['building_name'] ?? 'N/A') . ')'; ?></td>
                                                 <td data-label="Issue Type"><?php echo htmlspecialchars($row['issue_type']); ?></td>
                                                 <td data-label="Reported By">
                                                     <?php echo htmlspecialchars($row['reporter_name'] ?? 'Unknown'); ?>
-                                                    <?php if (!empty($row['reporter_type'])): ?>
-                                                        <span class="reporter-badge"><?php echo $row['reporter_type']; ?></span>
-                                                    <?php endif; ?>
                                                 </td>
                                                 <td data-label="Date"><?php echo date('M d, Y', strtotime($row['reported_at'])); ?></td>
                                                 <td data-label="Status">
@@ -319,12 +272,12 @@ include 'includes/equipment_report.php'
                                                     </span>
                                                 </td>
                                                 <td data-label="Condition">
-                                                    <span class="condition-badge condition-<?php echo $row['statusCondition']; ?>">
-                                                        <?php echo ucfirst(str_replace('_', ' ', $row['statusCondition'])); ?>
+                                                    <span class="condition-badge condition-<?php echo $row['equipment_condition'] ?? 'unknown'; ?>">
+                                                        <?php echo $row['equipment_condition'] ? ucfirst(str_replace('_', ' ', $row['equipment_condition'])) : 'Unknown'; ?>
                                                     </span>
                                                 </td>
                                                 <td class="action-buttons">
-                                                    <a href="?view=<?php echo $row['id']; ?>" class="view-btn" title="View Details">
+                                                    <a href="?view=<?php echo $row['id']; ?>" class="view-btn" title="View Details for <?php echo htmlspecialchars($row['reference_number']); ?>">
                                                         <i class="mdi mdi-eye"></i>
                                                     </a>
                                                 </td>
@@ -332,7 +285,7 @@ include 'includes/equipment_report.php'
                                         <?php endwhile; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="8" class="has-text-centered">No reports found matching your criteria.</td>
+                                            <td colspan="9" class="has-text-centered">No reports found matching your criteria.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -403,6 +356,10 @@ include 'includes/equipment_report.php'
                                     <div class="detail-section">
                                         <h3 class="section-title">Issue Information</h3>
                                         <div class="info-group">
+                                            <div class="info-label">Reference Number</div>
+                                            <div class="info-value"><span class="reference-number"><?php echo htmlspecialchars($reportDetail['reference_number'] ?? 'N/A'); ?></span></div>
+                                        </div>
+                                        <div class="info-group">
                                             <div class="info-label">Issue Type</div>
                                             <div class="info-value"><?php echo htmlspecialchars($reportDetail['issue_type']); ?></div>
                                         </div>
@@ -413,8 +370,8 @@ include 'includes/equipment_report.php'
                                         <div class="info-group">
                                             <div class="info-label">Equipment Condition</div>
                                             <div class="info-value">
-                                                <span class="condition-badge condition-<?php echo $reportDetail['statusCondition']; ?>">
-                                                    <?php echo ucfirst(str_replace('_', ' ', $reportDetail['statusCondition'])); ?>
+                                                <span class="condition-badge condition-<?php echo $reportDetail['equipment_condition'] ?? 'unknown'; ?>">
+                                                    <?php echo $reportDetail['equipment_condition'] ? ucfirst(str_replace('_', ' ', $reportDetail['equipment_condition'])) : 'Unknown'; ?>
                                                 </span>
                                             </div>
                                         </div>
@@ -460,10 +417,10 @@ include 'includes/equipment_report.php'
                                 <div class="form-group">
                                     <label class="form-label">Equipment Condition</label>
                                     <select name="statusCondition" class="form-select">
-                                        <option value="working" <?php echo $reportDetail['statusCondition'] == 'working' ? 'selected' : ''; ?>>Working</option>
-                                        <option value="needs_repair" <?php echo $reportDetail['statusCondition'] == 'needs_repair' ? 'selected' : ''; ?>>Needs Repair</option>
-                                        <option value="maintenance" <?php echo $reportDetail['statusCondition'] == 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
-                                        <option value="missing" <?php echo $reportDetail['statusCondition'] == 'missing' ? 'selected' : ''; ?>>Missing</option>
+                                        <option value="working" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'working' ? 'selected' : ''; ?>>Working</option>
+                                        <option value="needs_repair" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'needs_repair' ? 'selected' : ''; ?>>Needs Repair</option>
+                                        <option value="maintenance" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
+                                        <option value="missing" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'missing' ? 'selected' : ''; ?>>Missing</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

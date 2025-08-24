@@ -30,47 +30,7 @@ checkAccess(['Department Admin']);
 
 <body>
     <div id="app">
-        <nav id="navbar-main" class="navbar is-fixed-top">
-            <div class="navbar-brand">
-                <a class="navbar-item mobile-aside-button">
-                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
-                </a>
-                <div class="navbar-item">
-                    <section class="is-title-bar">
-                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-                            <ul>
-                                <li>Department Admin</li>
-                                <li>QR Code Generator</li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="navbar-brand is-right">
-                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
-                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
-                </a>
-            </div>
-            <div class="navbar-menu" id="navbar-menu">
-                <div class="navbar-end">
-                    <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link">
-
-                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
-                            <span class="icon">
-                                <i class="mdi mdi-chevron-down"></i>
-                            </span>
-                        </a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="../auth/logout.php">
-                                <span class="icon"><i class="mdi mdi-logout"></i></span>
-                                <span>Log Out</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
+        <?php include 'layout/topnav.php'; ?>
 
         <aside class="aside is-placed-left is-expanded">
             <div class="aside-tools">
@@ -123,23 +83,13 @@ checkAccess(['Department Admin']);
                         </a>
                         <ul>
                             <li>
-                                <a href="dept_add_teacher.php">
-                                    <span>Add Teacher</span>
+                                <a href="manage_teachers.php">
+                                    <span>Manage Teachers</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="dept_add_student.php">
-                                    <span>Add Student</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_teachers.php">
-                                    <span>Edit Teachers</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_students.php">
-                                    <span>Edit Students</span>
+                                <a href="manage_students.php">
+                                    <span>Manage Students</span>
                                 </a>
                             </li>
                         </ul>

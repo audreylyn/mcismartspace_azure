@@ -1,9 +1,10 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
-// Get student ID from session
-$studentId = $_SESSION['user_id'];
+// Get user ID and role from session
+$userId = $_SESSION['user_id'];
+$userRole = $_SESSION['role'];
 
 // Process account deletion
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -20,10 +21,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // If no validation errors, proceed
     if (empty($errorMsg)) {
+        // Determine which table and ID field to use based on user role
+        if ($userRole == 'Student') {
+            $table = 'student';
+            $idField = 'StudentID';
+        } else if ($userRole == 'Teacher') {
+            $table = 'teacher';
+            $idField = 'TeacherID';
+        }
+        
         // Get the current hashed password
-        $sql = "SELECT Password FROM student WHERE StudentID = ?";
+        $sql = "SELECT Password FROM $table WHERE $idField = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $studentId);
+        $stmt->bind_param("i", $userId);
         $stmt->execute();
         $result = $stmt->get_result();
 
@@ -33,10 +43,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Verify the password against the stored hash
             if (password_verify($verifyPassword, $hashed_password)) {
-                // Simply delete the student account
-                $deleteAccountSql = "DELETE FROM student WHERE StudentID = ?";
+                // Delete the user account based on role
+                $deleteAccountSql = "DELETE FROM $table WHERE $idField = ?";
                 $deleteAccountStmt = $conn->prepare($deleteAccountSql);
-                $deleteAccountStmt->bind_param("i", $studentId);
+                $deleteAccountStmt->bind_param("i", $userId);
 
                 if ($deleteAccountStmt->execute()) {
                     // Destroy the session

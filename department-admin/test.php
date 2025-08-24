@@ -207,6 +207,39 @@ $result = $conn->query($sql);
 while ($row = $result->fetch_assoc()) {
     $issue_prone_rooms[] = $row;
 }
+
+// Get recent room usage data - approved requests only
+$recent_room_usage = [];
+$sql = "SELECT rr.*, r.room_name, b.building_name, 
+        CASE 
+            WHEN rr.StudentID IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+            WHEN rr.TeacherID IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+        END as user_name,
+        CASE 
+            WHEN rr.StudentID IS NOT NULL THEN 'Student'
+            WHEN rr.TeacherID IS NOT NULL THEN 'Teacher'
+        END as user_role,
+        CASE 
+            WHEN NOW() BETWEEN rr.StartTime AND rr.EndTime THEN 'Active Now'
+            WHEN NOW() > rr.EndTime THEN 'Completed'
+            ELSE 'Upcoming'
+        END as usage_status
+        FROM room_requests rr
+        JOIN rooms r ON rr.RoomID = r.id
+        JOIN buildings b ON r.building_id = b.id
+        LEFT JOIN student s ON rr.StudentID = s.StudentID
+        LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+        WHERE rr.Status = 'approved'
+        AND (s.Department = ? OR t.Department = ?)
+        ORDER BY rr.RequestDate DESC
+        LIMIT 5";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $department, $department);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $recent_room_usage[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -624,6 +657,19 @@ while ($row = $result->fetch_assoc()) {
         .dashboard-table tbody tr:hover {
             background-color: rgba(0, 0, 0, 0.02);
         }
+        
+        /* Text alignment classes */
+        .text-left {
+            text-align: left !important;
+        }
+        
+        .text-right {
+            text-align: right !important;
+        }
+        
+        .text-center {
+            text-align: center !important;
+        }
     </style>
 </head>
 
@@ -986,6 +1032,125 @@ while ($row = $result->fetch_assoc()) {
                             <div class="issue-title">No recent equipment issues found</div>
                         </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+                
+                <!-- Recent Room Usage -->
+                <div class="chart-card chart-card-full">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <span class="icon"><i class="mdi mdi-door"></i></span>
+                            Recent Room Usage
+                        </h3>
+                        <a href="dept_room_usage_logs.php" class="action-link">View All</a>
+                    </div>
+                    <div class="card-content">
+                        <?php foreach ($recent_room_usage as $usage): ?>
+                        <div class="issue-item">
+                            <div class="issue-title">
+                                <?php echo htmlspecialchars($usage['room_name']); ?>, 
+                                <?php echo htmlspecialchars($usage['building_name']); ?> - 
+                                <?php echo htmlspecialchars($usage['Purpose']); ?>
+                            </div>
+                            <div class="issue-meta">
+                                <div>
+                                    <strong>User:</strong> <?php echo htmlspecialchars($usage['user_name']); ?> (<?php echo $usage['user_role']; ?>)
+                                </div>
+                                <div>
+                                    <strong>Time:</strong> <?php echo date('M d, Y g:i A', strtotime($usage['StartTime'])); ?> - <?php echo date('g:i A', strtotime($usage['EndTime'])); ?>
+                                </div>
+                                <div>
+                                    <span class="badge badge-<?php echo strtolower(str_replace(' ', '-', $usage['usage_status'])); ?>">
+                                        <?php echo $usage['usage_status']; ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php if (empty($recent_room_usage)): ?>
+                        <div class="issue-item">
+                            <div class="issue-title">No recent room usage data found</div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <!-- Charts Row: Rooms with Most Issues and Most Requested Rooms -->
+                <div class="charts-row">
+                    <!-- Rooms with Most Issues -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <span class="icon"><i class="mdi mdi-alert-circle"></i></span>
+                                Rooms with Most Issues
+                            </h3>
+                        </div>
+                        <div class="card-content">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Room</th>
+                                        <th>Building</th>
+                                        <th class="text-right">Issue Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($issue_prone_rooms)): ?>
+                                        <?php foreach ($issue_prone_rooms as $room): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($room['room_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($room['building_name']); ?></td>
+                                            <td class="text-right">
+                                                <span class="badge badge-danger"><?php echo $room['issue_count']; ?></span>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Most Requested Rooms -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <span class="icon"><i class="mdi mdi-bookmark-check"></i></span>
+                                Most Requested Rooms
+                            </h3>
+                        </div>
+                        <div class="card-content">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Room</th>
+                                        <th>Building</th>
+                                        <th class="text-right">Request Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($popular_rooms)): ?>
+                                        <?php foreach ($popular_rooms as $room): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($room['room_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($room['building_name']); ?></td>
+                                            <td class="text-right">
+                                                <span class="badge badge-primary"><?php echo $room['request_count']; ?></span>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center">No data available</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

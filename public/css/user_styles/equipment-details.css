@@ -1,0 +1,89 @@
+/* Equipment details styling */
+.equipment-item {
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  transition: all 0.2s ease;
+}
+
+.equipment-item:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.name-status {
+  display: flex;
+  align-items: center;
+}
+
+.equipment-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.equipment-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.equipment-status {
+  padding: 3px 8px;
+  border-radius: 28px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  margin-left: 5px;
+}
+
+.equipment-status.status-working {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.equipment-status.status-needs_repair,
+.equipment-status.status-maintenance {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.equipment-status.status-missing {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Equipment quantity styles removed */
+
+.equipment-description {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  width: 100%;
+}
+
+.equipment-loading {
+  padding: 15px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.equipment-loading i {
+  margin-right: 8px;
+}
+
+.equipment-error {
+  color: #dc3545;
+  text-align: center;
+  padding: 10px;
+}
+
+.no-equipment {
+  color: #6c757d;
+  text-align: center;
+  padding: 15px;
+  font-style: italic;
+}

@@ -29,16 +29,6 @@ $currentPageTitle = $pageTitles[$currentPage] ?? $pageSubTitle ?? 'Dashboard';
 // Define dropdown menu items for user profile
 $userMenuItems = [
     [
-        'title' => 'Profile',
-        'url' => '../users/edit_profile.php',
-        'icon' => 'account'
-    ],
-    [
-        'title' => 'Settings',
-        'url' => '../users/settings.php',
-        'icon' => 'cog-outline'
-    ],
-    [
         'title' => 'Log Out',
         'url' => '../auth/logout.php',
         'icon' => 'logout'

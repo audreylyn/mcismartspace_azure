@@ -329,7 +329,7 @@ include "includes/add_room.php";
                     </div>
                 </header>
                 <div class="card-content">
-                    <table id="facilityTable" class="table is-fullwidth is-striped is-hoverable">
+                    <table id="facilityTable" class="adminTable table is-fullwidth is-striped is-hoverable">
                         <thead>
                             <tr>
                                 <th>Building Name</th>

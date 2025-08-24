@@ -1,6 +1,6 @@
 <?php
 require_once '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 // Check if all required parameters are set
 $requiredParams = [
@@ -40,16 +40,22 @@ $status = $requestData['status'] ?? 'approved';
 $currentDate = date('F j, Y');
 
 // Get user info from session
-$studentId = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'];
+$userRole = $_SESSION['role'];
 db();
 
-// Get student information
-$sql = "SELECT FirstName, LastName, Department, Program, YearSection FROM student WHERE StudentID = ?";
+// Get user information based on role
+if ($userRole == 'Student') {
+    $sql = "SELECT FirstName, LastName, Department, Program, YearSection FROM student WHERE StudentID = ?";
+} else if ($userRole == 'Teacher') {
+    $sql = "SELECT FirstName, LastName, Department, Position, Specialization FROM teacher WHERE TeacherID = ?";
+}
+
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $studentId);
+$stmt->bind_param("i", $userId);
 $stmt->execute();
 $result = $stmt->get_result();
-$student = $result->fetch_assoc();
+$userData = $result->fetch_assoc();
 
 // Close database connection
 $conn->close();
@@ -394,7 +400,7 @@ $conn->close();
 <body>
 
     <div class="button-container">
-        <button class="action-button" id="backButton" onclick="window.location.href='users_room_status.php';">
+        <button class="action-button" id="backButton" onclick="window.location.href='users_reservation_history.php';">
             <i class="fa fa-arrow-left"></i> Back to Reservation
         </button>
         <button class="action-button" id="downloadPdf">
@@ -444,8 +450,14 @@ $conn->close();
         </div>
 
         <div class="content">
-            This is to confirm that <?php echo htmlspecialchars($student['FirstName'] . ' ' . $student['LastName']); ?> from
-            <?php echo htmlspecialchars($student['Department'] . ' - ' . $student['Program'] . ' ' . $student['YearSection']); ?>
+            This is to confirm that <?php echo htmlspecialchars($userData['FirstName'] . ' ' . $userData['LastName']); ?> from
+            <?php 
+            if ($userRole == 'Student') {
+                echo htmlspecialchars($userData['Department'] . ' - ' . $userData['Program'] . ' ' . $userData['YearSection']);
+            } else {
+                echo htmlspecialchars($userData['Department'] . ' - ' . $userData['Position']);
+            }
+            ?>
             has formally requested the use of a room for an upcoming activity.
         </div>
 
@@ -466,13 +478,20 @@ $conn->close();
                 <div class="form-label">Date/Time of Activity:</div>
                 <div class="form-value"><?php echo htmlspecialchars($reservationDate . ', ' . $startTime . ' - ' . $endTime); ?></div>
             </div>
+            <?php if ($userRole == 'Student'): ?>
             <div class="form-field">
                 <div class="form-label">Program/Section:</div>
-                <div class="form-value"><?php echo htmlspecialchars($student['Program'] . ' ' . $student['YearSection']); ?></div>
+                <div class="form-value"><?php echo htmlspecialchars($userData['Program'] . ' ' . $userData['YearSection']); ?></div>
             </div>
+            <?php else: ?>
+            <div class="form-field">
+                <div class="form-label">Position:</div>
+                <div class="form-value"><?php echo htmlspecialchars($userData['Position']); ?></div>
+            </div>
+            <?php endif; ?>
             <div class="form-field">
                 <div class="form-label">Department:</div>
-                <div class="form-value"><?php echo htmlspecialchars($student['Department']); ?></div>
+                <div class="form-value"><?php echo htmlspecialchars($userData['Department']); ?></div>
             </div>
             <div class="form-field">
                 <div class="form-label">No. of expected participants:</div>

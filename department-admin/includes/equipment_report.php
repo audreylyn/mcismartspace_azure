@@ -16,13 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         // Update the equipment issue report
         $updateSql = "UPDATE equipment_issues SET 
                     status = ?, 
-                    statusCondition = ?,
                     admin_response = ?,
                     resolved_at = CASE WHEN ? = 'resolved' THEN NOW() ELSE resolved_at END
                     WHERE id = ?";
 
         $stmt = $conn->prepare($updateSql);
-        $stmt->bind_param("ssssi", $newStatus, $newCondition, $adminResponse, $newStatus, $reportId);
+        $stmt->bind_param("sssi", $newStatus, $adminResponse, $newStatus, $reportId);
         $stmt->execute();
 
         // Get the equipment_id from the report
@@ -36,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
 
         // Update the room_equipment table to reflect the new condition
         $updateEquipSql = "UPDATE room_equipment 
-                          SET status = ?, statusCondition = ?, last_updated = NOW() 
+                          SET status = ?, last_updated = NOW() 
                           WHERE equipment_id = ?";
         $equipUpdateStmt = $conn->prepare($updateEquipSql);
-        $equipUpdateStmt->bind_param("ssi", $newCondition, $newCondition, $equipmentId);
+        $equipUpdateStmt->bind_param("si", $newCondition, $equipmentId);
         $equipUpdateStmt->execute();
 
         // Create audit log entry
@@ -115,7 +114,8 @@ if (!empty($searchTerm)) {
 $whereClause = !empty($filterConditions) ? "WHERE " . implode(" AND ", $filterConditions) : "";
 
 // Get reports with detailed information
-$reportsSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name, 
+$reportsSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name,
+              re.status as equipment_condition,
               CASE 
                 WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
                 WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
@@ -129,7 +129,7 @@ $reportsSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, 
               FROM equipment_issues ei
               JOIN equipment e ON ei.equipment_id = e.id
               LEFT JOIN (
-                  SELECT equipment_id, MIN(room_id) as room_id 
+                  SELECT equipment_id, MIN(room_id) as room_id, status
                   FROM room_equipment 
                   GROUP BY equipment_id
               ) re ON ei.equipment_id = re.equipment_id
@@ -160,7 +160,8 @@ $viewReportId = isset($_GET['view']) ? intval($_GET['view']) : 0;
 $reportDetail = null;
 
 if ($viewReportId > 0) {
-    $detailSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name, 
+    $detailSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name,
+                 re.status as equipment_condition,
                  CASE 
                    WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
                    WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
@@ -174,7 +175,7 @@ if ($viewReportId > 0) {
                  FROM equipment_issues ei
                  JOIN equipment e ON ei.equipment_id = e.id
                  LEFT JOIN (
-                     SELECT equipment_id, MIN(room_id) as room_id 
+                     SELECT equipment_id, MIN(room_id) as room_id, status
                      FROM room_equipment 
                      GROUP BY equipment_id
                  ) re ON ei.equipment_id = re.equipment_id

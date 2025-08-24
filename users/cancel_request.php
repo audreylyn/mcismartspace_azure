@@ -1,16 +1,20 @@
 <?php
 require '../auth/middleware.php';
-checkAccess(['Student']);
+checkAccess(['Student', 'Teacher']);
 
 // Check if the request is a POST request and contains the request ID
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_id']) && isset($_POST['cancel_request'])) {
     $requestId = intval($_POST['request_id']);
-    $studentId = $_SESSION['user_id']; // Get the current student's ID
+    $userId = $_SESSION['user_id']; // Get the current user's ID
+    $userRole = $_SESSION['role']; // Get the user's role
 
-    // Check if the request belongs to the current student
-    $checkSql = "SELECT RequestID FROM room_requests WHERE RequestID = ? AND StudentID = ? AND Status = 'pending'";
+    // Field name depends on user role
+    $idField = $userRole === 'Student' ? 'StudentID' : 'TeacherID';
+    
+    // Check if the request belongs to the current user
+    $checkSql = "SELECT RequestID FROM room_requests WHERE RequestID = ? AND $idField = ? AND Status = 'pending'";
     $checkStmt = $conn->prepare($checkSql);
-    $checkStmt->bind_param("ii", $requestId, $studentId);
+    $checkStmt->bind_param("ii", $requestId, $userId);
     $checkStmt->execute();
     $checkResult = $checkStmt->get_result();
 
@@ -39,6 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['request_id']) && isset
 // Close database connection
 $conn->close();
 
-// Redirect back to the status page
-header("Location: users_room_status.php");
+// Redirect back to the reservation history page
+header("Location: users_reservation_history.php");
 exit();

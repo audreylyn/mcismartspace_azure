@@ -38,6 +38,7 @@ $userId = $_SESSION['user_id'];
     <link href="../public/css/user_styles/room-browser.css" rel="stylesheet">
     <link href="../public/css/user_styles/room-browser-styles.css" rel="stylesheet">
     <link href="../public/css/user_styles/room-reservation.css" rel="stylesheet">
+    <link href="../public/css/user_styles/equipment-details.css" rel="stylesheet">
 
     <!-- Custom responsive styles -->
     <style>
@@ -63,99 +64,9 @@ $userId = $_SESSION['user_id'];
 <body class="nav-md">
     <div class="container body">
         <div class="main_container">
-            <div class="col-md-3 left_col menu_fixed">
-                <div class="left_col scroll-view">
-                    <div class="navbar nav_title" style="border: 0;">
-                        <div class="logo-container">
-                            <a href="#" class="site-branding">
-                                <img class="meyclogo" src="../public/assets/logo.webp" alt="meyclogo">
-                                <span class="title-text">MCiSmartSpace</span>
-                            </a>
-                        </div>
-                    </div>
+            <?php include "layout/sidebar.php"; ?>
 
-                    <div class="clearfix"></div>
-
-                    <br />
-
-                    <!-- sidebar menu -->
-                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-                        <div class="menu_section">
-                            <ul class="nav side-menu" class="navbar nav_title" style="border: 0;">
-                                <li class="active">
-                                    <a href="users_browse_room.php">
-                                        <div class="icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2 flex-shrink-0" data-lov-id="src/components/layout/Sidebar.tsx:89:20" data-lov-name="Icon" data-component-path="src/components/layout/Sidebar.tsx" data-component-line="89" data-component-file="Sidebar.tsx" data-component-name="Icon" data-component-content="%7B%22className%22%3A%22flex-shrink-0%22%7D">
-                                                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                                                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                                                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                                                <path d="M10 6h4"></path>
-                                                <path d="M10 10h4"></path>
-                                                <path d="M10 14h4"></path>
-                                                <path d="M10 18h4"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="menu-text">
-                                            <span>Browse Room</span>
-                                            <span class="fa fa-chevron-down" style="opacity: 0;"></span>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="users_room_status.php">
-                                        <div class="icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                                                <path d="M8 14h3"></path>
-                                                <path d="M14 14h3"></path>
-                                                <path d="M8 18h3"></path>
-                                                <path d="M14 18h3"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="menu-text">
-                                            <span>Reservation Status</span>
-                                            <span class="fa fa-chevron-down" style="opacity: 0;"></span>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="users_reservation_history.php">
-                                        <div class="icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M12 8v4l3 3"></path>
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                            </svg>
-                                        </div>
-                                        <div class="menu-text">
-                                            <span>Reservation History</span>
-                                            <span class="fa fa-chevron-down" style="opacity: 0;"></span>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="equipment_report_status.php">
-                                        <div class="icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="menu-text">
-                                            <span>Equipment Reports</span>
-                                            <span class="fa fa-chevron-down" style="opacity: 0;"></span>
-                                        </div>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <!-- /sidebar menu -->
-                </div>
-            </div>
-
-            <?php include "../partials/topnav.php"; ?>
+            <?php include "layout/topnav.php"; ?>
             <!-- Page content -->
             <div class="right_col" role="main">
                 <div>
@@ -197,49 +108,22 @@ $userId = $_SESSION['user_id'];
                                         <div class="filter-count"><span id="buildingCount">0 selected</span></div>
                                         <div class="filter-options">
                                             <?php
-                                            // Connect to database
+                                            // Include database connection
+                                            require_once '../auth/dbh.inc.php';
+                                            
+                                            // Get database connection
                                             $conn = db();
 
-                                            // Get the department of the logged-in student
-                                            $user_id = $_SESSION['user_id'];
-                                            $user_role = $_SESSION['role'];
-                                            $user_department = '';
-                                            
-                                            // Get the department based on user role
-                                            if ($user_role == 'Student') {
-                                                $user_query = "SELECT Department FROM student WHERE StudentID = ?";
-                                            } elseif ($user_role == 'Teacher') {
-                                                $user_query = "SELECT Department FROM teacher WHERE TeacherID = ?";
-                                            }
-                                            
-                                            $stmt = $conn->prepare($user_query);
-                                            $stmt->bind_param("i", $user_id);
-                                            $stmt->execute();
-                                            $user_result = $stmt->get_result();
-                                            
-                                            if ($user_result->num_rows > 0) {
-                                                $user_row = $user_result->fetch_assoc();
-                                                $user_department = $user_row['Department'];
-                                            }
-
-                                            // Get all buildings, but mark the ones for the user's department
-                                            $sql = "SELECT id, building_name, department FROM buildings ORDER BY 
-                                                   CASE WHEN department = ? THEN 0 ELSE 1 END, 
-                                                   building_name ASC";
-                                            $stmt = $conn->prepare($sql);
-                                            $stmt->bind_param("s", $user_department);
-                                            $stmt->execute();
-                                            $result = $stmt->get_result();
+                                            // Query to get all buildings
+                                            $sql = "SELECT id, building_name FROM buildings";
+                                            $result = $conn->query($sql);
 
                                             if ($result->num_rows > 0) {
                                                 while ($row = $result->fetch_assoc()) {
-                                                    $isUserDepartmentBuilding = ($row['department'] == $user_department);
-                                                    echo '<div class="filter-checkbox-item' . ($isUserDepartmentBuilding ? ' user-department' : '') . '">';
+                                                    echo '<div class="filter-checkbox-item">';
                                                     echo '<label>';
-                                                    echo '<input type="checkbox" name="building" value="' . $row['id'] . '" class="building-checkbox"' . 
-                                                         ($isUserDepartmentBuilding ? ' checked' : '') . '>';
-                                                    echo '<span class="checkbox-label">' . $row['building_name'] . 
-                                                         ($isUserDepartmentBuilding ? ' <i class="fa fa-home" title="Your department building"></i>' : '') . '</span>';
+                                                    echo '<input type="checkbox" name="building" value="' . $row['id'] . '" class="building-checkbox">';
+                                                    echo '<span class="checkbox-label">' . $row['building_name'] . '</span>';
                                                     echo '</label>';
                                                     echo '</div>';
                                                 }
@@ -337,44 +221,8 @@ $userId = $_SESSION['user_id'];
                                 $params = [];
                                 $param_types = "";
 
-                                // Get user department buildings
-                                $user_department_buildings = [];
-                                if (!isset($_GET['building_ids'])) {
-                                    // First visit or no filter applied yet
-                                    $user_id = $_SESSION['user_id'];
-                                    $user_role = $_SESSION['role'];
-                                    
-                                    // Get user department
-                                    if ($user_role == 'Student') {
-                                        $user_query = "SELECT Department FROM student WHERE StudentID = ?";
-                                    } elseif ($user_role == 'Teacher') {
-                                        $user_query = "SELECT Department FROM teacher WHERE TeacherID = ?";
-                                    }
-                                    
-                                    $stmt = $conn->prepare($user_query);
-                                    $stmt->bind_param("i", $user_id);
-                                    $stmt->execute();
-                                    $user_result = $stmt->get_result();
-                                    
-                                    if ($user_result->num_rows > 0) {
-                                        $user_row = $user_result->fetch_assoc();
-                                        $user_department = $user_row['Department'];
-                                        
-                                        // Get building IDs for user's department
-                                        $building_query = "SELECT id FROM buildings WHERE department = ?";
-                                        $stmt = $conn->prepare($building_query);
-                                        $stmt->bind_param("s", $user_department);
-                                        $stmt->execute();
-                                        $building_result = $stmt->get_result();
-                                        
-                                        while ($brow = $building_result->fetch_assoc()) {
-                                            $user_department_buildings[] = $brow['id'];
-                                        }
-                                    }
-                                }
-
                                 // Get filter parameters
-                                $building_ids = isset($_GET['building_ids']) ? $_GET['building_ids'] : $user_department_buildings;
+                                $building_ids = isset($_GET['building_ids']) ? $_GET['building_ids'] : [];
                                 $room_types = isset($_GET['room_types']) ? $_GET['room_types'] : [];
                                 $min_capacity = isset($_GET['min_capacity']) ? intval($_GET['min_capacity']) : 0;
                                 $has_equipment = isset($_GET['has_equipment']) && $_GET['has_equipment'] === 'true';
@@ -482,9 +330,13 @@ $userId = $_SESSION['user_id'];
                                         <div class="col-md-4 room-card"
                                             data-room-id="<?php echo $roomId; ?>"
                                             data-building-id="<?php echo $buildingId; ?>"
-                                            data-room-type="<?php echo $roomType; ?>"
+                                            data-building-name="<?php echo htmlspecialchars($buildingName); ?>"
+                                            data-room-name="<?php echo htmlspecialchars($roomName); ?>"
+                                            data-room-type="<?php echo htmlspecialchars($roomType); ?>"
                                             data-capacity="<?php echo $capacity; ?>"
                                             data-status="<?php echo $status; ?>"
+                                            data-status-text="<?php echo $statusText; ?>"
+                                            data-status-class="<?php echo $statusClass; ?>"
                                             data-has-equipment="<?php echo $hasEquipment ? 'true' : 'false'; ?>">
                                             <div class="x_panel">
                                                 <div class="x_title bg-header">
@@ -510,7 +362,7 @@ $userId = $_SESSION['user_id'];
                                                         </div>
                                                     <?php } ?>
                                                     <div class="action-buttons">
-                                                        <button type="button" class="btn-view" onclick="showRoomDetails(<?php echo $roomId; ?>)">
+                                                        <button type="button" class="btn-view" onclick="showRoomDetailsModal(this.parentNode.parentNode.parentNode.parentNode)">
                                                             <i class="fa fa-info-circle"></i> View Details
                                                         </button>
                                                         <?php if ($status == 'available') { ?>
@@ -546,6 +398,12 @@ $userId = $_SESSION['user_id'];
             <div class="modal fade" id="roomDetailsModal" tabindex="-1" role="dialog" aria-labelledby="roomDetailsModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="roomDetailsModalLabel">Room Details</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                         <div class="modal-body" id="roomDetailsContent">
                             <div class="text-center">
                                 <i class="fa fa-spinner fa-spin fa-3x"></i>
@@ -613,6 +471,7 @@ $userId = $_SESSION['user_id'];
                                             <label for="participants" class="form-label">Number of Participants</label>
                                             <input type="number" id="participants" name="participants" class="form-control" placeholder="e.g., 10" min="1" required>
                                             <div class="form-hint">Please enter a valid number of participants</div>
+                                            <div class="form-error" id="capacityError" style="display: none; color: #e74c3c; margin-top: 5px; font-size: 0.85em;"></div>
                                         </div>
 
                                         <div class="modal-btns">
@@ -628,10 +487,11 @@ $userId = $_SESSION['user_id'];
                                             <div class="date-input-container">
                                                 <i class="fa fa-calendar date-input-icon"></i>
                                                 <?php
-                                                // Generate today's date in YYYY-MM-DD format
-                                                $today = date('Y-m-d');
+                                                // Generate tomorrow's date in YYYY-MM-DD format
+                                                $tomorrow = date('Y-m-d', strtotime('+1 day'));
                                                 ?>
-                                                <input type="date" id="reservationDate" name="reservationDate" class="form-control date-input" min="<?php echo $today; ?>" required>
+                                                <input type="date" id="reservationDate" name="reservationDate" class="form-control date-input" min="<?php echo $tomorrow; ?>" value="<?php echo $tomorrow; ?>" required>
+                                                <small class="form-text text-muted">You can only select tomorrow or later dates</small>
                                             </div>
                                         </div>
 
@@ -662,14 +522,6 @@ $userId = $_SESSION['user_id'];
                                                     <option value="16:00">4:00 PM</option>
                                                     <option value="16:30">4:30 PM</option>
                                                     <option value="17:00">5:00 PM</option>
-                                                    <option value="17:30">5:30 PM</option>
-                                                    <option value="18:00">6:00 PM</option>
-                                                    <option value="18:30">6:30 PM</option>
-                                                    <option value="19:00">7:00 PM</option>
-                                                    <option value="19:30">7:30 PM</option>
-                                                    <option value="20:00">8:00 PM</option>
-                                                    <option value="20:30">8:30 PM</option>
-                                                    <option value="21:00">9:00 PM</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -706,6 +558,8 @@ $userId = $_SESSION['user_id'];
                                             <label class="form-label">Selected Room</label>
                                             <div class="selected-room-info" id="selectedRoomInfo">
                                                 <!-- This will be populated with room info via JavaScript -->
+
+
                                             </div>
                                         </div>
 
@@ -790,10 +644,6 @@ $userId = $_SESSION['user_id'];
                 {equipmentList}
             </div>
         </div>
-
-        <div class="action-section text-center">
-            {reserveButton}
-        </div>
     </div>
 </script>
 
@@ -856,11 +706,12 @@ $userId = $_SESSION['user_id'];
                 });
             </script>
 
-            <!-- Include external JavaScript file -->
-            <script src="../public/js/user_scripts/room-browser-scripts.js"></script>
+
             <!-- Include jQuery first if not already included earlier -->
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <!-- Include external JavaScript file -->
+            <!-- Include external JavaScript files -->
             <script src="../public/js/user_scripts/room-browser-scripts.js"></script>
+            <script src="../public/js/user_scripts/room-details-direct.js"></script>
+            <script src="../public/js/user_scripts/reservation_modal.js"></script>
 
             <?php include "../partials/footer.php"; ?>

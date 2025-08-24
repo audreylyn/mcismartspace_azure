@@ -126,8 +126,9 @@ include "includes/message.php";
                         <div class="new-title-container" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 5px 0 5px 20px;">
                             <p class="new-title">Add Admin</p>
                             <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                                <form id="importForm" class="form-data" method="post" enctype="multipart/form-data" style="display: flex;">
-                                    <button class="excel" style="border-radius: 0.3em 0 0 0.3em; display: flex; justify-content: center; width: 50px; padding: 0.5rem;">
+                                <form method="post" action="includes/import_admin.php" enctype="multipart/form-data" style="display: flex;">
+                                    <input type="hidden" name="importSubmit" value="1">
+                                    <button type="button" class="excel" onclick="document.getElementById('adminFileInput').click();" style="border-radius: 0.3em 0 0 0.3em; display: flex; justify-content: center; width: 50px; padding: 0.5rem; background-color: #217346; border: none; cursor: pointer;">
                                         <svg
                                             fill="#fff"
                                             xmlns="http://www.w3.org/2000/svg"
@@ -155,9 +156,9 @@ include "includes/message.php";
                                             14.4375 28.34375L11.1875 34.375L6.1875 34.375L12.15625 25.03125ZM36 
                                             20L44 20L44 22L36 22ZM36 27L44 27L44 29L36 29ZM36 35L44 35L44 37L36 37Z"></path>
                                         </svg>
-                                        <input type="file" name="file" class="file" accept=".csv" required />
+                                        <input type="file" id="adminFileInput" name="file" accept=".csv,.xlsx,.xls" style="display: none;" onchange="handleFileSelect(this)" />
                                     </button>
-                                    <button id="importButton" class="container-btn-file" type="button" style="border-radius: 0 0.3em 0.3em 0;">
+                                    <button id="importButton" type="submit" disabled style="border-radius: 0 0.3em 0.3em 0; background-color: #4a6fdc; color: white; border: none; padding: 0.5rem 1rem; cursor: not-allowed; opacity: 0.5; display: flex; align-items: center; gap: 5px;">
                                         <svg
                                             fill="#fff"
                                             xmlns="http://www.w3.org/2000/svg"
@@ -170,6 +171,7 @@ include "includes/message.php";
                                         Import
                                     </button>
                                 </form>
+                                <small id="fileName" style="margin-top: 5px; color: #666; font-size: 12px;">No file selected</small>
                             </div>
                         </div>
                     </header>
@@ -313,6 +315,50 @@ include "includes/message.php";
                 showModal(title, decodeURIComponent(message), status);
             }
         });
+
+        // Handle file selection for import
+        function handleFileSelect(input) {
+            const fileName = input.files[0] ? input.files[0].name : '';
+            const fileInfo = document.getElementById('fileName');
+            const importButton = document.getElementById('importButton');
+            
+            if (fileName) {
+                // Validate file type
+                const allowedTypes = ['.csv', '.xlsx', '.xls'];
+                const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+                
+                if (!allowedTypes.includes(fileExtension)) {
+                    alert('Please select a valid CSV or Excel file (.csv, .xlsx, .xls)');
+                    input.value = '';
+                    fileInfo.textContent = 'No file selected';
+                    fileInfo.style.color = '#666';
+                    importButton.disabled = true;
+                    importButton.style.opacity = '0.5';
+                    importButton.style.cursor = 'not-allowed';
+                    return;
+                }
+                
+                fileInfo.innerHTML = `
+                    <span style="color: #4caf50;">
+                        <i class="mdi mdi-file-check"></i>
+                        Selected: <strong>${fileName}</strong>
+                    </span>
+                `;
+                
+                // Enable the import button
+                importButton.disabled = false;
+                importButton.style.opacity = '1';
+                importButton.style.cursor = 'pointer';
+            } else {
+                fileInfo.textContent = 'No file selected';
+                fileInfo.style.color = '#666';
+                
+                // Disable the import button
+                importButton.disabled = true;
+                importButton.style.opacity = '0.5';
+                importButton.style.cursor = 'not-allowed';
+            }
+        }
     </script>
     
     <!-- AJAX Loader -->

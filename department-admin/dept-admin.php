@@ -312,6 +312,94 @@ while ($row = $result->fetch_assoc()) {
     $recent_issues[] = $row;
 }
 
+// Get recent room usage data - approved requests only
+$recent_room_usage = [];
+$stmt = $conn->prepare("
+    SELECT rr.RequestID, rr.StartTime, rr.EndTime, rr.ActivityName, r.room_name, b.building_name, 
+        CASE 
+            WHEN rr.StudentID IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+            WHEN rr.TeacherID IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+        END as user_name,
+        CASE 
+            WHEN rr.StudentID IS NOT NULL THEN 'Student'
+            WHEN rr.TeacherID IS NOT NULL THEN 'Teacher'
+        END as user_role,
+        CASE 
+            WHEN NOW() BETWEEN rr.StartTime AND rr.EndTime THEN 'Active Now'
+            WHEN NOW() > rr.EndTime THEN 'Completed'
+            ELSE 'Upcoming'
+        END as usage_status
+    FROM room_requests rr
+    JOIN rooms r ON rr.RoomID = r.id
+    JOIN buildings b ON r.building_id = b.id
+    LEFT JOIN student s ON rr.StudentID = s.StudentID
+    LEFT JOIN teacher t ON rr.TeacherID = t.TeacherID
+    WHERE rr.Status = 'approved'
+    AND (s.Department = ? OR t.Department = ?)
+    ORDER BY 
+        CASE 
+            WHEN NOW() BETWEEN rr.StartTime AND rr.EndTime THEN 0
+            WHEN NOW() < rr.StartTime THEN 1
+            ELSE 2
+        END, 
+        rr.StartTime DESC
+    LIMIT 5
+");
+$stmt->bind_param("ss", $department, $department);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $recent_room_usage[] = $row;
+}
+
+// Get rooms with most equipment issues
+$rooms_with_most_issues = [];
+$stmt = $conn->prepare("
+    SELECT 
+        r.id as room_id,
+        r.room_name,
+        b.building_name,
+        COUNT(ei.id) as issue_count
+    FROM equipment_issues ei
+    JOIN room_equipment re ON ei.equipment_id = re.equipment_id
+    JOIN rooms r ON re.room_id = r.id
+    JOIN buildings b ON r.building_id = b.id
+    WHERE b.department = ?
+    GROUP BY r.id, r.room_name, b.building_name
+    ORDER BY issue_count DESC
+    LIMIT 5
+");
+$stmt->bind_param("s", $department);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $rooms_with_most_issues[] = $row;
+}
+
+// Get most requested rooms
+$most_requested_rooms = [];
+$stmt = $conn->prepare("
+    SELECT 
+        r.id as room_id,
+        r.room_name,
+        b.building_name,
+        COUNT(rr.RequestID) as request_count,
+        ROUND((COUNT(CASE WHEN rr.Status = 'approved' THEN 1 ELSE NULL END) / COUNT(rr.RequestID)) * 100, 1) as approval_rate
+    FROM room_requests rr
+    JOIN rooms r ON rr.RoomID = r.id
+    JOIN buildings b ON r.building_id = b.id
+    WHERE b.department = ?
+    GROUP BY r.id, r.room_name, b.building_name
+    ORDER BY request_count DESC
+    LIMIT 5
+");
+$stmt->bind_param("s", $department);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+    $most_requested_rooms[] = $row;
+}
+
 // No need to close the connection, it's managed by the db() function.
 ?>
 
@@ -689,155 +777,69 @@ while ($row = $result->fetch_assoc()) {
             border-radius: 4px;
             box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
         }
+        
+        /* Table styles */
+        .dashboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        
+        .dashboard-table th,
+        .dashboard-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .dashboard-table th {
+            font-weight: 600;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .dashboard-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .dashboard-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+        
+        .has-text-right {
+            text-align: right !important;
+        }
+        
+        .has-text-centered {
+            text-align: center !important;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning-color);
+            color: black;
+        }
+        
+        .badge-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <nav id="navbar-main" class="navbar is-fixed-top">
-            <div class="navbar-brand">
-                <a class="navbar-item mobile-aside-button">
-                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
-                </a>
-                <div class="navbar-item">
-                    <section class="is-title-bar">
-                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-                            <ul>
-                                <li>Department Admin</li>
-                                <li>Dashboard</li>
-                            </ul>
-                        </div>
-                    </section>
-                </div>
-            </div>
-            <div class="navbar-brand is-right">
-                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
-                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
-                </a>
-            </div>
-            <div class="navbar-menu" id="navbar-menu">
-                <div class="navbar-end">
-                    <div class="navbar-item dropdown has-divider">
-                        <a class="navbar-link" onclick="toggleDropdown(this)">
-                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
-                            <span class="icon">
-                                <i class="mdi mdi-chevron-down"></i>
-                            </span>
-                        </a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="../auth/logout.php">
-                                <span class="icon"><i class="mdi mdi-logout"></i></span>
-                                <span>Log Out</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <aside class="aside is-placed-left is-expanded">
-            <div class="aside-tools">
-                <div class="logo">
-                    <a href="#"><img class="meyclogo" src="../public/assets/logo.webp" alt="logo"></a>
-                    <p>MCiSmartSpace</p>
-                </div>
-            </div>
-            <div class="menu is-menu-main">
-                <ul class="menu-list">
-                    <li class="active">
-                        <a href="#">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1"></path>
-                                    <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1"></path>
-                                </svg></span>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
-                <ul class="menu-list">
-                    <li>
-                        <a href="dept_room_approval.php">
-                            <span class="icon">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-building2">
-                                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
-                                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
-                                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
-                                    <path d="M10 6h4"></path>
-                                    <path d="M10 10h4"></path>
-                                    <path d="M10 14h4"></path>
-                                    <path d="M10 18h4"></path>
-                                </svg>
-                            </span>
-                            <span>Room Approval</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown" onclick="toggleIcon(this)">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>
-                                    <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                    <path d="M21 21v-2a4 4 0 0 0 -3 -3.85"></path>
-                                </svg></span>
-                            <span class="#">Manage Accounts</span>
-                            <span class="icon toggle-icon"><i class="mdi mdi-plus"></i></span>
-                        </a>
-                        <ul>
-                            <li>
-                                <a href="dept_add_teacher.php">
-                                    <span>Add Teacher</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_add_student.php">
-                                    <span>Add Student</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_teachers.php">
-                                    <span>Edit Teachers</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="dept_edit_students.php">
-                                    <span>Edit Students</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="dept_equipment_report.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-                                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37c.996.608 2.296.07 2.572-1.065z"></path>
-                                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"></path>
-                                </svg></span>
-                            <span>Equipment Report</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="qr_generator.php">
-                            <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code">
-                                    <rect width="5" height="5" x="3" y="3" rx="1"></rect>
-                                    <rect width="5" height="5" x="16" y="3" rx="1"></rect>
-                                    <rect width="5" height="5" x="3" y="16" rx="1"></rect>
-                                    <path d="M21 16h-3a2 2 0 0 0-2 2v3"></path>
-                                    <path d="M21 21v.01"></path>
-                                    <path d="M12 7v3a2 2 0 0 1-2 2H7"></path>
-                                    <path d="M3 12h.01"></path>
-                                    <path d="M12 3h.01"></path>
-                                    <path d="M12 16v.01"></path>
-                                    <path d="M16 12h1"></path>
-                                    <path d="M21 12v.01"></path>
-                                    <path d="M12 21v-1"></path>
-                                </svg></span>
-                            <span>QR Generator</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </aside>
+        <?php include 'layout/topnav.php'; ?>
+        <?php include 'layout/sidebar.php'; ?>
 
         <section class="section main-section">
             <div class="dashboard-container">
@@ -929,6 +931,120 @@ while ($row = $result->fetch_assoc()) {
                         <?php else: ?>
                             <p class="text-center py-4">No recent equipment issues reported.</p>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Room Usage -->
+            <div class="chart-card issues-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="icon"><i class="mdi mdi-door"></i></span>
+                        Recent Room Usage
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <?php if (count($recent_room_usage) > 0): ?>
+                        <?php foreach ($recent_room_usage as $usage): ?>
+                            <div class="issue-item">
+                                <div class="issue-title">
+                                    <?php echo htmlspecialchars($usage['room_name']); ?>, 
+                                    <?php echo htmlspecialchars($usage['building_name']); ?> - 
+                                    <?php echo htmlspecialchars($usage['ActivityName']); ?>
+                                </div>
+                                <div class="issue-meta">
+                                    <span>User: <?php echo htmlspecialchars($usage['user_name']); ?> (<?php echo $usage['user_role']; ?>)</span>
+                                    <span>Time: <?php echo date('M j, Y g:i A', strtotime($usage['StartTime'])); ?></span>
+                                    <span class="badge badge-<?php echo strtolower(str_replace(' ', '-', $usage['usage_status'])); ?>"><?php echo $usage['usage_status']; ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <a href="dept_room_usage_logs.php" class="action-link">View All Usage</a>
+                    <?php else: ?>
+                        <p class="text-center py-4">No recent room usage data found.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Two column layout for Rooms with Most Issues and Most Requested Rooms -->
+            <div class="dashboard-container">
+                <!-- Rooms with Most Issues -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <span class="icon"><i class="mdi mdi-alert-circle"></i></span>
+                            Rooms with Most Issues
+                        </h3>
+                    </div>
+                    <div class="card-content table-responsive">
+                        <table class="dashboard-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Building</th>
+                                    <th class="has-text-right">Issue Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (count($rooms_with_most_issues) > 0): ?>
+                                    <?php foreach ($rooms_with_most_issues as $room): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($room['room_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($room['building_name']); ?></td>
+                                            <td class="has-text-right">
+                                                <span class="badge badge-danger"><?php echo $room['issue_count']; ?></span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="3" class="has-text-centered">No data available</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Most Requested Rooms -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <span class="icon"><i class="mdi mdi-bookmark-check"></i></span>
+                            Most Requested Rooms
+                        </h3>
+                    </div>
+                    <div class="card-content table-responsive">
+                        <table class="dashboard-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Building</th>
+                                    <th class="has-text-right">Requests</th>
+                                    <th class="has-text-right">Approval Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (count($most_requested_rooms) > 0): ?>
+                                    <?php foreach ($most_requested_rooms as $room): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($room['room_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($room['building_name']); ?></td>
+                                            <td class="has-text-right"><?php echo $room['request_count']; ?></td>
+                                            <td class="has-text-right">
+                                                <span class="badge badge-<?php echo ($room['approval_rate'] >= 70) ? 'success' : (($room['approval_rate'] >= 40) ? 'warning' : 'danger'); ?>">
+                                                    <?php echo $room['approval_rate']; ?>%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4" class="has-text-centered">No data available</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
