@@ -20,10 +20,10 @@ function db(): mysqli
     }
 
     // Allow env overrides but keep sensible defaults
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: '';
-    $name = getenv('DB_NAME') ?: 'my_db';
+    $host = getenv('DB_HOST') ?: 'mcismartdb.mysql.database.azure.com';
+    $user = getenv('DB_USER') ?: 'adminuser';
+    $pass = getenv('DB_PASS') ?: 'SmartDb2025!';
+    $name = getenv('DB_NAME') ?: 'mcismartdb';
 
     $conn = new mysqli($host, $user, $pass, $name);
     if ($conn->connect_error) {
