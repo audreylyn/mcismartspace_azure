@@ -52,8 +52,6 @@ CREATE TABLE `dept_admin` (
 );
 
 -- =========================
--- Students
--- =========================
 CREATE TABLE `student` (
   `StudentID` INT NOT NULL AUTO_INCREMENT,
   `FirstName` VARCHAR(50) NOT NULL,
@@ -65,6 +63,8 @@ CREATE TABLE `student` (
   `Password` VARCHAR(255) NOT NULL,
   `AdminID` INT NOT NULL,
   `RoleID` INT NOT NULL DEFAULT 4,
+  `PenaltyStatus` ENUM('none', 'warning', 'banned') DEFAULT 'none',
+  `PenaltyExpiresAt` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`StudentID`),
   FOREIGN KEY (`AdminID`) REFERENCES dept_admin(`AdminID`) ON DELETE CASCADE,
   FOREIGN KEY (`RoleID`) REFERENCES roles(`RoleID`)
@@ -149,15 +149,15 @@ CREATE TABLE equipment (
 
 -- Room Equipment (cleaned)
 CREATE TABLE room_equipment (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    room_id INT NOT NULL,
-    equipment_id INT NOT NULL,
-    quantity INT DEFAULT 1,
-    notes TEXT,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    status ENUM('working', 'needs_repair', 'maintenance', 'missing') DEFAULT 'working',
-    FOREIGN KEY (room_id) REFERENCES rooms(id),
-    FOREIGN KEY (equipment_id) REFERENCES equipment(id)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  room_id INT NOT NULL,
+  equipment_id INT NOT NULL,
+  quantity INT DEFAULT 1,
+  notes TEXT,
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  status ENUM('working', 'needs_repair', 'maintenance', 'missing') DEFAULT 'working',
+  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+  FOREIGN KEY (equipment_id) REFERENCES equipment(id)
 );
 
 -- Equipment Audit
@@ -191,13 +191,27 @@ CREATE TABLE equipment_issues (
 );
 
 -- =========================
--- System Settings
--- =========================
 CREATE TABLE system_settings (
   setting_key VARCHAR(50) NOT NULL,
   setting_value TEXT DEFAULT NULL,
   updated_at TIMESTAMP NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (setting_key)
+);
+
+-- =========================
+-- Penalty System
+-- =========================
+CREATE TABLE penalty (
+  id INT NOT NULL AUTO_INCREMENT,
+  student_id INT NOT NULL,
+  type ENUM('warning', 'ban') NOT NULL,
+  reason TEXT NOT NULL,
+  issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NULL DEFAULT NULL,
+  issued_by INT NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (student_id) REFERENCES student(StudentID) ON DELETE CASCADE,
+  FOREIGN KEY (issued_by) REFERENCES dept_admin(AdminID) ON DELETE SET NULL
 );
 
 INSERT INTO system_settings (setting_key, setting_value, updated_at) VALUES

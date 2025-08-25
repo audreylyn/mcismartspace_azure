@@ -30,7 +30,47 @@ checkAccess(['Department Admin']);
 
 <body>
     <div id="app">
-        <?php include 'layout/topnav.php'; ?>
+        <nav id="navbar-main" class="navbar is-fixed-top">
+            <div class="navbar-brand">
+                <a class="navbar-item mobile-aside-button">
+                    <span class="icon"><i class="mdi mdi-forwardburger mdi-24px"></i></span>
+                </a>
+                <div class="navbar-item">
+                    <section class="is-title-bar">
+                        <div class="flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+                            <ul>
+                                <li>Department Admin</li>
+                                <li>QR Code Generator</li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="navbar-brand is-right">
+                <a class="navbar-item --jb-navbar-menu-toggle" data-target="navbar-menu">
+                    <span class="icon"><i class="mdi mdi-dots-vertical mdi-24px"></i></span>
+                </a>
+            </div>
+            <div class="navbar-menu" id="navbar-menu">
+                <div class="navbar-end">
+                    <div class="navbar-item dropdown has-divider">
+                        <a class="navbar-link">
+
+                            <span>Hello, <?php echo $_SESSION['name']; ?></span>
+                            <span class="icon">
+                                <i class="mdi mdi-chevron-down"></i>
+                            </span>
+                        </a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="../auth/logout.php">
+                                <span class="icon"><i class="mdi mdi-logout"></i></span>
+                                <span>Log Out</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
         <aside class="aside is-placed-left is-expanded">
             <div class="aside-tools">
@@ -70,6 +110,21 @@ checkAccess(['Department Admin']);
                             <span>Room Approval</span>
                         </a>
                     </li>
+                     <li>
+                        <a href="dept_room_activity_logs.php">
+                            <span class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                                <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"></path>
+                                <path d="M12 11h4"></path>
+                                <path d="M12 16h4"></path>
+                                <path d="M8 11h.01"></path>
+                                <path d="M8 16h.01"></path>
+                            </svg>
+                            </span>
+                            <span>Activity Logs</span>
+                        </a>
+                    </li>
                     <li>
                         <a class="dropdown" onclick="toggleIcon(this)">
                             <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
@@ -104,7 +159,7 @@ checkAccess(['Department Admin']);
                         </a>
                     </li>
                     <li class="active">
-                        <a href="#">
+                        <a href="#S">
                             <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code">
                                     <rect width="5" height="5" x="3" y="3" rx="1"></rect>
                                     <rect width="5" height="5" x="16" y="3" rx="1"></rect>
@@ -142,31 +197,48 @@ checkAccess(['Department Admin']);
                                 <select class="form-select" id="equipment" name="equipment">
                                     <option value="">-- Select Equipment --</option>
                                     <?php
-                                    // Get equipment list with room and building information
-                                    $sql = "SELECT e.id, e.name, e.description, e.category, 
-                                           r.id as room_id, r.room_name, 
-                                           b.id as building_id, b.building_name 
-                                        FROM equipment e
-                                        JOIN room_equipment re ON e.id = re.equipment_id
-                                        JOIN rooms r ON re.room_id = r.id
-                                        JOIN buildings b ON r.building_id = b.id
-                                        ORDER BY b.building_name, r.room_name, e.name";
+                                    // Get department from session
+                                    $department = isset($_SESSION['department']) ? $_SESSION['department'] : null;
 
-                                    $result = $conn->query($sql);
-
-                                    if ($result && $result->num_rows > 0) {
-                                        while ($row = $result->fetch_assoc()) {
-                                            $value = json_encode([
-                                                'id' => $row['id'],
-                                                'name' => $row['name'],
-                                                'room' => $row['room_name'],
-                                                'building' => $row['building_name']
-                                            ]);
-                                            echo '<option value=\'' . htmlspecialchars($value) . '\'>' .
-                                                htmlspecialchars($row['name'] . ' - ' . $row['room_name'] . ', ' . $row['building_name']) .
-                                                '</option>';
+                                    if ($department) {
+                                        // Map session department to database department for special cases
+                                        $map = [
+                                            'education and arts' => 'Education, Arts, and Sciences',
+                                            'criminal justice' => 'Criminal Justice Education'
+                                        ];
+                                        $likeDepartment = '%' . $department . '%';
+                                        $deptLower = strtolower($department);
+                                        if (isset($map[$deptLower])) {
+                                            $likeDepartment = '%' . $map[$deptLower] . '%';
+                                        }
+                                        $sql = "SELECT e.id, e.name, e.description, e.category,
+                                                   r.id as room_id, r.room_name,
+                                                   b.id as building_id, b.building_name
+                                                FROM equipment e
+                                                JOIN room_equipment re ON e.id = re.equipment_id
+                                                JOIN rooms r ON re.room_id = r.id
+                                                JOIN buildings b ON r.building_id = b.id
+                                                WHERE b.department LIKE ?
+                                                ORDER BY b.building_name, r.room_name, e.name";
+                                        $stmt = $conn->prepare($sql);
+                                        $stmt->bind_param('s', $likeDepartment);
+                                        $stmt->execute();
+                                        $result = $stmt->get_result();
+                                        if ($result && $result->num_rows > 0) {
+                                            while ($row = $result->fetch_assoc()) {
+                                                $value = json_encode([
+                                                    'id' => $row['id'],
+                                                    'name' => $row['name'],
+                                                    'room' => $row['room_name'],
+                                                    'building' => $row['building_name']
+                                                ]);
+                                                echo '<option value=\'' . htmlspecialchars($value) . '\'>' .
+                                                    htmlspecialchars($row['name'] . ' - ' . $row['room_name'] . ', ' . $row['building_name']) .
+                                                    '</option>';
+                                            }
                                         }
                                     }
+                                    // If department is not set, show no equipment
                                     ?>
                                 </select>
                             </div>

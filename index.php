@@ -74,16 +74,34 @@ require_once __DIR__ . '/middleware/error_handler.php';
                         placeholder="Email"
                         required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="position:relative;">
                     <input
                         type="password"
                         class="form-control"
                         name="password"
+                        id="password"
                         placeholder="Password"
                         required>
+                    <button type="button" id="togglePassword" aria-label="Show password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:transparent; border:none; outline:none; cursor:pointer; padding:0; display:flex; align-items:center;">
+                        <svg id="eyeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transition:stroke 0.2s;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
                 </div>
                 <button type="submit" class="btn-login">Sign In</button>
             </form>
+            <script>
+                        const passwordInput = document.getElementById('password');
+                        const togglePassword = document.getElementById('togglePassword');
+                        const eyeIcon = document.getElementById('eyeIcon');
+                        let passwordVisible = false;
+                        togglePassword.addEventListener('click', function() {
+                                passwordVisible = !passwordVisible;
+                                passwordInput.type = passwordVisible ? 'text' : 'password';
+                                eyeIcon.innerHTML = passwordVisible
+                                    ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.07 21.07 0 0 1 5.06-7.06"/><path d="M9.53 9.53A3 3 0 0 1 12 15a3 3 0 0 1-2.47-5.47"/><path d="M1 1l22 22"/>'
+                                    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                                eyeIcon.setAttribute('stroke', passwordVisible ? '#007bff' : '#666');
+                        });
+            </script>
         </div>
     </div>
     

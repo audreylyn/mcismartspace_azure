@@ -1,0 +1,91 @@
+/* Penalty Modal Styles */
+.penalty-modal-content {
+  max-width: 420px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  padding: 0;
+}
+.penalty-student-info {
+  font-weight: 500;
+  font-size: 1.1em;
+  margin-bottom: 8px;
+}
+.warning-count {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.warning-alert-icon {
+  color: #fbc02d;
+  font-size: 1.3em;
+}
+.warning-indicators {
+  margin-left: 10px;
+  display: flex;
+  gap: 4px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #eee;
+  display: inline-block;
+}
+#dot1.active,
+#dot2.active,
+#dot3.active {
+  background: #fbc02d;
+}
+.penalty-field {
+  margin-bottom: 16px;
+}
+.penalty-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+}
+.penalty-select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-top: 2px;
+}
+.penalty-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-top: 2px;
+}
+.penalty-desc-help {
+  color: #888;
+  font-size: 0.95em;
+}
+.penalty-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.penalty-btn-cancel {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.penalty-btn-issue {
+  background: #fbc02d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+}

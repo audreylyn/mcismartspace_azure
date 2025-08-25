@@ -40,7 +40,7 @@ $menuItems = [
                 <path d="M8 11h.01"></path>
                 <path d="M8 16h.01"></path>
             </svg>',
-        'title' => 'Room Activity Logs'
+        'title' => 'Activity Logs'
     ],
     [
         'type' => 'dropdown',

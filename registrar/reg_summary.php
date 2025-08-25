@@ -399,7 +399,7 @@ include "includes/add_room.php";
                                 <select name="room_type" id="room_type" required>
                                     <option value="">Select Room Type</option>
                                     <?php
-                                    $room_types = ['Classroom', 'Gymnasium', 'Computer Lab', 'Auditorium', 'Lecture Hall'];
+                                    $room_types = ['Classroom', 'Gymnasium', 'Auditorium', 'Lecture Hall'];
                                     foreach ($room_types as $type) {
                                         echo '<option value="' . htmlspecialchars($type) . '">' . htmlspecialchars($type) . '</option>';
                                     }

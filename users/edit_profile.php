@@ -94,6 +94,32 @@ require_once '../auth/room_status_handler.php';
             padding: 8px 12px;
         }
     }
+
+    .admin-notice {
+        margin: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+    .input-with-icon {
+        position: relative;
+    }
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #888;
+        transition: color 0.2s;
+        z-index: 2;
+    }
+    .toggle-password.active svg path,
+    .toggle-password.active svg circle {
+        stroke: #007bff;
+    }
 </style>
 
 <?php include "layout/sidebar.php"; ?>
@@ -237,16 +263,40 @@ require_once '../auth/room_status_handler.php';
                 <form id="passwordChangeForm" action="change_password_process.php" method="post">
                     <div class="password-form-group">
                         <label for="currentPassword">Current Password</label>
-                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                        <div class="input-with-icon">
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                            <span class="toggle-password" data-target="currentPassword">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 10C3.5 6 7 3 10 3C13 3 16.5 6 18 10C16.5 14 13 17 10 17C7 17 3.5 14 2 10Z" stroke="#888" stroke-width="2" fill="none"/>
+                                    <circle cx="10" cy="10" r="3" stroke="#888" stroke-width="2" fill="none"/>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
                     <div class="password-form-group">
                         <label for="newPassword">New Password</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        <div class="input-with-icon">
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                            <span class="toggle-password" data-target="newPassword">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 10C3.5 6 7 3 10 3C13 3 16.5 6 18 10C16.5 14 13 17 10 17C7 17 3.5 14 2 10Z" stroke="#888" stroke-width="2" fill="none"/>
+                                    <circle cx="10" cy="10" r="3" stroke="#888" stroke-width="2" fill="none"/>
+                                </svg>
+                            </span>
+                        </div>
                         <small class="password-hint">Password must be at least 8 characters long</small>
                     </div>
                     <div class="password-form-group">
                         <label for="confirmPassword">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        <div class="input-with-icon">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            <span class="toggle-password" data-target="confirmPassword">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 10C3.5 6 7 3 10 3C13 3 16.5 6 18 10C16.5 14 13 17 10 17C7 17 3.5 14 2 10Z" stroke="#888" stroke-width="2" fill="none"/>
+                                    <circle cx="10" cy="10" r="3" stroke="#888" stroke-width="2" fill="none"/>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
                     <div class="alert-actions">
                         <button type="button" class="btn-action btn-secondary" data-dismiss="modal">Cancel</button>
@@ -273,7 +323,15 @@ require_once '../auth/room_status_handler.php';
                 <form id="deleteAccountForm" action="delete_account_process.php" method="post">
                     <div class="password-form-group">
                         <label for="verifyPassword">Enter your password to confirm</label>
-                        <input type="password" class="form-control" id="verifyPassword" name="verifyPassword" required>
+                        <div class="input-with-icon">
+                            <input type="password" class="form-control" id="verifyPassword" name="verifyPassword" required>
+                            <span class="toggle-password" data-target="verifyPassword">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 10C3.5 6 7 3 10 3C13 3 16.5 6 18 10C16.5 14 13 17 10 17C7 17 3.5 14 2 10Z" stroke="#888" stroke-width="2" fill="none"/>
+                                    <circle cx="10" cy="10" r="3" stroke="#888" stroke-width="2" fill="none"/>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
                     <div class="alert-actions">
                         <button type="button" class="btn-action btn-secondary" data-dismiss="modal">Cancel</button>
@@ -287,34 +345,58 @@ require_once '../auth/room_status_handler.php';
 
 <?php include "../partials/footer.php"; ?>
 
-<style>
-    .admin-notice {
-        margin: 20px;
-        padding: 15px;
-        border-radius: 5px;
-        background-color: #d1ecf1;
-        border-color: #bee5eb;
-        color: #0c5460;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Password match validation
         const passwordForm = document.getElementById('passwordChangeForm');
         const newPassword = document.getElementById('newPassword');
         const confirmPassword = document.getElementById('confirmPassword');
+        const currentPasswordInput = document.getElementById('currentPassword');
 
         if (passwordForm) {
             passwordForm.addEventListener('submit', function(event) {
-                if (newPassword.value !== confirmPassword.value) {
+                // Get values
+                const currentVal = currentPasswordInput.value;
+                const newVal = newPassword.value;
+                const confirmVal = confirmPassword.value;
+                const errorElement = document.getElementById('passwordChangeError');
+                errorElement.style.display = 'none';
+                errorElement.textContent = '';
+
+                // Check if new password matches confirmation
+                if (newVal !== confirmVal) {
                     event.preventDefault();
-                    alert('New password and confirmation do not match.');
+                    errorElement.textContent = 'New password and confirmation do not match.';
+                    errorElement.style.display = 'block';
+                    return;
                 }
 
-                if (newPassword.value.length < 8) {
+                // Check password length
+                if (newVal.length < 8) {
                     event.preventDefault();
-                    alert('Password must be at least 8 characters long.');
+                    errorElement.textContent = 'Password must be at least 8 characters long.';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                // Check if new password is same as current
+                if (currentVal === newVal) {
+                    event.preventDefault();
+                    errorElement.textContent = 'New password must be different from your current password.';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                // Check if new password is too similar (e.g., only 1 char different)
+                let diffCount = 0;
+                for (let i = 0; i < Math.max(currentVal.length, newVal.length); i++) {
+                    if (currentVal[i] !== newVal[i]) diffCount++;
+                }
+                if (diffCount <= 1 && currentVal.length === newVal.length) {
+                    event.preventDefault();
+                    errorElement.textContent = 'New password is too similar to your current password.';
+                    errorElement.style.display = 'block';
+                    return;
                 }
             });
         }
@@ -350,7 +432,6 @@ require_once '../auth/room_status_handler.php';
         }
 
         // Current password focus handling
-        const currentPasswordInput = document.getElementById('currentPassword');
         if (currentPasswordInput) {
             $('#changePasswordModal').on('shown.bs.modal', function() {
                 currentPasswordInput.focus();
@@ -368,6 +449,23 @@ require_once '../auth/room_status_handler.php';
                 document.getElementById('deleteAccountError').style.display = 'none';
             });
         }
+
+        // Show/hide password toggle
+        document.querySelectorAll('.toggle-password').forEach(function(toggle) {
+            toggle.addEventListener('click', function() {
+                const targetId = toggle.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                if (input) {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        toggle.classList.add('active');
+                    } else {
+                        input.type = 'password';
+                        toggle.classList.remove('active');
+                    }
+                }
+            });
+        });
 
         // Add this function to your existing script
         function setupErrorMessageFade() {
