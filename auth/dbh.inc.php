@@ -19,13 +19,22 @@ function db(): mysqli
         }
     }
 
-    // Allow env overrides but keep sensible defaults
+    // Azure MySQL connection settings
     $host = getenv('DB_HOST') ?: 'mcismartdb.mysql.database.azure.com';
-    $user = getenv('DB_USER') ?: 'adminuser@mcismartdb';
+    $user = getenv('DB_USER') ?: 'adminuser';
     $pass = getenv('DB_PASS') ?: 'SmartDb2025!';
     $name = getenv('DB_NAME') ?: 'mcismartdb';
 
-    $conn = new mysqli($host, $user, $pass, $name);
+    // Set SSL options for Azure MySQL
+    $ssl_opts = array(
+        "SSL_VERIFY_SERVER_CERT" => true,
+        "MYSQLI_CLIENT_SSL" => true
+    );
+
+    $conn = mysqli_init();
+    $conn->ssl_set(NULL, NULL, NULL, NULL, NULL);
+    $conn->real_connect($host, $user, $pass, $name, 3306, NULL, MYSQLI_CLIENT_SSL);
+
     if ($conn->connect_error) {
         error_log('Database connection failed: ' . $conn->connect_error);
         http_response_code(500);
