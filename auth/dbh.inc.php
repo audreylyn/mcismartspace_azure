@@ -21,7 +21,7 @@ function db(): mysqli
 
     // Allow env overrides but keep sensible defaults
     $host = getenv('DB_HOST') ?: 'mcismartdb.mysql.database.azure.com';
-    $user = getenv('DB_USER') ?: 'adminuser';
+    $user = getenv('DB_USER') ?: 'adminuser@mcismartdb';
     $pass = getenv('DB_PASS') ?: 'SmartDb2025!';
     $name = getenv('DB_NAME') ?: 'mcismartdb';
 
