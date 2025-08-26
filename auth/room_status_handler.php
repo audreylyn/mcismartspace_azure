@@ -11,14 +11,41 @@
 // Connect to database
 function connectToDatabase()
 {
-    // Use a new, local connection for this specific handler
-    // to avoid conflicts with the global connection.
-    $conn = new mysqli("mcismartdb.mysql.database.azure.com", "adminuser", "SmartDb2025!", "mcismartdb");
-    if ($conn->connect_error) {
-        error_log("Database connection failed: " . $conn->connect_error);
+    try {
+        // Define the SSL certificate path
+        $ssl_cert = __DIR__ . '/../DigiCertGlobalRootCA.crt.pem';
+
+        // Initialize connection
+        $conn = mysqli_init();
+
+        // Set SSL certificate
+        $conn->ssl_set(NULL, NULL, $ssl_cert, NULL, NULL);
+
+        // Establish connection with SSL
+        $conn->real_connect(
+            "mcismartdb.mysql.database.azure.com", 
+            "adminuser", 
+            "SmartDb2025!", 
+            "mcismartdb",
+            3306,
+            NULL,
+            MYSQLI_CLIENT_SSL
+        );
+
+        // Check for connection errors
+        if ($conn->connect_error) {
+            error_log("Database connection failed: " . $conn->connect_error);
+            return null;
+        }
+
+        // Set charset
+        $conn->set_charset("utf8mb4");
+        
+        return $conn;
+    } catch (Exception $e) {
+        error_log("Database connection exception: " . $e->getMessage());
         return null;
     }
-    return $conn;
 }
 
 /**
