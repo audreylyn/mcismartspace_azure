@@ -220,7 +220,7 @@ class SessionManager {
      */
     private function redirectToLogin($message = '') {
         // Simple redirect to the login page
-        $loginUrl = '/mcmod3/index.php';
+        $loginUrl = '/index.php';
         
         // Add timeout error parameter if no specific message
         if (!$message) {

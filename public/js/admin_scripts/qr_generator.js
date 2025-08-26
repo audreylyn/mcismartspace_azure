@@ -52,8 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Create the QR code content - URL with query parameters
-    const baseUrl =
-      window.location.origin + '/mcmod3/redirect-equipment-report.php';
+    const baseUrl = window.location.origin + '/redirect-equipment-report.php';
     const qrContent = `${baseUrl}?id=${encodeURIComponent(
       equipmentData.id
     )}&name=${encodeURIComponent(equipmentData.name)}&room=${encodeURIComponent(

@@ -158,17 +158,11 @@ function showReservationDetails(
   type,
   equipment,
   capacity,
-  roomType
+  roomType,
+  rejectionReason
 ) {
-  // Don't show details modal if cancel alert is visible
-  if (
-    document.getElementById('confirmCancelModal') &&
-    document.getElementById('confirmCancelModal').classList.contains('show')
-  ) {
-    return;
-  }
+  // Remove rejectionReasonHtml variable, use only inline rendering in modalContent
 
-  // Prepare modal content with two-column layout
   var modalContent = `
         <div class="modern-details-container">
             <div class="details-main-info">
@@ -229,6 +223,18 @@ function showReservationDetails(
                             <i class="fa fa-users"></i> ${participants}
                         </div>
                     </div>
+                    ${
+                      (type === 'rejected' || type === 'cancelled') &&
+                      rejectionReason &&
+                      rejectionReason.trim() !== ''
+                        ? `<div class="detail-item">
+                              <div class="detail-label">Rejection Reason</div>
+                              <div class="detail-value">
+                                  <i class="fa fa-ban"></i> ${rejectionReason}
+                              </div>
+                           </div>`
+                        : ''
+                    }
                 </div>
             </div>
             

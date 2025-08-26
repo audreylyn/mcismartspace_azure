@@ -139,6 +139,7 @@ $userId = $_SESSION['user_id'];
                     $roomType = htmlspecialchars($row['room_type']);
                     $capacity = $row['capacity'];
                     $participants = $row['NumberOfParticipants'];
+                    $rejectionReason = $row['RejectionReason'] ?? ''; // <-- Fetch rejection reason
                     $requestDate = date('M j, Y', strtotime($row['RequestDate']));
                     $reservationDate = date('M j, Y', strtotime($row['StartTime']));
                     $startTime = date('g:i A', strtotime($row['StartTime']));
@@ -213,7 +214,23 @@ $userId = $_SESSION['user_id'];
                         </div>
                         <div class="reservation-footer">
                             <div class="reserved-date">Reserved on <?php echo $requestDate; ?></div>
-                            <button type="button" class="view-details-btn" onclick="showReservationDetails(<?php echo $requestId; ?>, '<?php echo htmlspecialchars($activityName, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($buildingName, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($roomName, ENT_QUOTES); ?>', '<?php echo $reservationDate; ?>', '<?php echo $startTime; ?>', '<?php echo $endTime; ?>', '<?php echo $participants; ?>', '<?php echo htmlspecialchars($purpose, ENT_QUOTES); ?>', '<?php echo $statusLabel; ?>', '<?php echo $type; ?>', '<?php echo htmlspecialchars($equipment, ENT_QUOTES); ?>', '<?php echo $capacity; ?>', '<?php echo $roomType; ?>')">
+                        <button type="button" class="view-details-btn" onclick="showReservationDetails(
+                                <?php echo $requestId; ?>,
+                                '<?php echo htmlspecialchars($activityName, ENT_QUOTES); ?>',
+                                '<?php echo htmlspecialchars($buildingName, ENT_QUOTES); ?>',
+                                '<?php echo htmlspecialchars($roomName, ENT_QUOTES); ?>',
+                                '<?php echo $reservationDate; ?>',
+                                '<?php echo $startTime; ?>',
+                                '<?php echo $endTime; ?>',
+                                '<?php echo $participants; ?>',
+                                '<?php echo htmlspecialchars($purpose, ENT_QUOTES); ?>',
+                                '<?php echo $statusLabel; ?>',
+                                '<?php echo $type; ?>',
+                                '<?php echo htmlspecialchars($equipment, ENT_QUOTES); ?>',
+                                '<?php echo $capacity; ?>',
+                                '<?php echo $roomType; ?>',
+                                '<?php echo htmlspecialchars($rejectionReason, ENT_QUOTES); ?>' 
+                            )">
                                 Details <i class="fa fa-chevron-right"></i>
                             </button>
                         </div>
