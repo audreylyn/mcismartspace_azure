@@ -13,7 +13,7 @@ function connectToDatabase()
 {
     // Use a new, local connection for this specific handler
     // to avoid conflicts with the global connection.
-    $conn = new mysqli("mcismartdb.mysql.database.azure.com", "adminuser@mcismartdb", "SmartDb2025!", "mcismartdb");
+    $conn = new mysqli("mcismartdb.mysql.database.azure.com", "adminuser", "SmartDb2025!", "mcismartdb");
     if ($conn->connect_error) {
         error_log("Database connection failed: " . $conn->connect_error);
         return null;
