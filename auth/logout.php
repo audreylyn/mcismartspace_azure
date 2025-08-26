@@ -1,6 +1,5 @@
-
 <?php
 session_start();
 session_destroy();
-header('Location: login.php'); // No output before this line!
+header("Location: ../index.php");
 exit();
