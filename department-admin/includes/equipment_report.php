@@ -114,39 +114,48 @@ if (!empty($searchTerm)) {
 $whereClause = !empty($filterConditions) ? "WHERE " . implode(" AND ", $filterConditions) : "";
 
 // Get reports with detailed information
-$reportsSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name,
-              re.status as equipment_condition,
-              CASE 
-                WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
-                WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
-              END as reporter_name,
-              CASE
-                WHEN ei.student_id IS NOT NULL THEN 'Student'
-                WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
-              END as reporter_type,
-              s.StudentID, s.Email as student_email,
-              t.TeacherID, t.Email as teacher_email
-              FROM equipment_issues ei
-              JOIN equipment e ON ei.equipment_id = e.id
-              LEFT JOIN (
-                  SELECT equipment_id, MIN(room_id) as room_id, status
-                  FROM room_equipment 
-                  GROUP BY equipment_id
-              ) re ON ei.equipment_id = re.equipment_id
-              LEFT JOIN rooms r ON re.room_id = r.id
-              LEFT JOIN buildings b ON r.building_id = b.id
-              LEFT JOIN student s ON ei.student_id = s.StudentID
-              LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
-              $whereClause
-              ORDER BY 
-              CASE 
-                WHEN ei.status = 'pending' THEN 1
-                WHEN ei.status = 'in_progress' THEN 2
-                WHEN ei.status = 'resolved' THEN 3
-                WHEN ei.status = 'rejected' THEN 4
-                ELSE 5
-              END,
-              ei.reported_at DESC";
+$reportsSql = "SELECT 
+    ei.*,
+    e.name as equipment_name,
+    r.room_name as room_name,
+    b.building_name as building_name,
+    re.equipment_status as equipment_condition,
+    CASE 
+        WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+        WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+    END as reporter_name,
+    CASE
+        WHEN ei.student_id IS NOT NULL THEN 'Student'
+        WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
+    END as reporter_type,
+    s.StudentID, 
+    s.Email as student_email,
+    t.TeacherID, 
+    t.Email as teacher_email
+FROM equipment_issues ei
+JOIN equipment e ON ei.equipment_id = e.id
+LEFT JOIN (
+    SELECT 
+        equipment_id, 
+        MIN(room_id) as room_id,
+        MAX(status) as equipment_status
+    FROM room_equipment 
+    GROUP BY equipment_id
+) re ON ei.equipment_id = re.equipment_id
+LEFT JOIN rooms r ON re.room_id = r.id
+LEFT JOIN buildings b ON r.building_id = b.id
+LEFT JOIN student s ON ei.student_id = s.StudentID
+LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
+$whereClause
+ORDER BY 
+    CASE 
+        WHEN ei.status = 'pending' THEN 1
+        WHEN ei.status = 'in_progress' THEN 2
+        WHEN ei.status = 'resolved' THEN 3
+        WHEN ei.status = 'rejected' THEN 4
+        ELSE 5
+    END,
+    ei.reported_at DESC";
 
 $stmt = $conn->prepare($reportsSql);
 if (!empty($params)) {
@@ -160,30 +169,39 @@ $viewReportId = isset($_GET['view']) ? intval($_GET['view']) : 0;
 $reportDetail = null;
 
 if ($viewReportId > 0) {
-    $detailSql = "SELECT ei.*, e.name as equipment_name, r.room_name as room_name, b.building_name as building_name,
-                 re.status as equipment_condition,
-                 CASE 
-                   WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
-                   WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
-                 END as reporter_name,
-                 CASE
-                   WHEN ei.student_id IS NOT NULL THEN 'Student'
-                   WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
-                 END as reporter_type,
-                 s.StudentID, s.Email as student_email,
-                 t.TeacherID, t.Email as teacher_email
-                 FROM equipment_issues ei
-                 JOIN equipment e ON ei.equipment_id = e.id
-                 LEFT JOIN (
-                     SELECT equipment_id, MIN(room_id) as room_id, status
-                     FROM room_equipment 
-                     GROUP BY equipment_id
-                 ) re ON ei.equipment_id = re.equipment_id
-                 LEFT JOIN rooms r ON re.room_id = r.id
-                 LEFT JOIN buildings b ON r.building_id = b.id
-                 LEFT JOIN student s ON ei.student_id = s.StudentID
-                 LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
-                 WHERE ei.id = ?";
+    $detailSql = "SELECT 
+    ei.*,
+    e.name as equipment_name,
+    r.room_name as room_name,
+    b.building_name as building_name,
+    re.equipment_status as equipment_condition,
+    CASE 
+        WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+        WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+    END as reporter_name,
+    CASE
+        WHEN ei.student_id IS NOT NULL THEN 'Student'
+        WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
+    END as reporter_type,
+    s.StudentID,
+    s.Email as student_email,
+    t.TeacherID,
+    t.Email as teacher_email
+FROM equipment_issues ei
+JOIN equipment e ON ei.equipment_id = e.id
+LEFT JOIN (
+    SELECT 
+        equipment_id,
+        MIN(room_id) as room_id,
+        MAX(status) as equipment_status
+    FROM room_equipment 
+    GROUP BY equipment_id
+) re ON ei.equipment_id = re.equipment_id
+LEFT JOIN rooms r ON re.room_id = r.id
+LEFT JOIN buildings b ON r.building_id = b.id
+LEFT JOIN student s ON ei.student_id = s.StudentID
+LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
+WHERE ei.id = ?";
     $detailStmt = $conn->prepare($detailSql);
     $detailStmt->bind_param("i", $viewReportId);
     $detailStmt->execute();

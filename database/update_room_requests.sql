@@ -1,38 +1,54 @@
--- Add columns for tracking who approved or rejected requests
-ALTER TABLE room_requests 
-ADD COLUMN ApprovedBy INT NULL,
-ADD COLUMN ApproverName VARCHAR(255) NULL,
-ADD COLUMN RejectedBy INT NULL,
-ADD COLUMN RejecterName VARCHAR(255) NULL;
+-- =========================
+-- Sample Data
+-- =========================
 
+INSERT INTO `registrar` (`regid`, `Reg_Email`, `Reg_Password`, `RoleID`) VALUES
+(1, 'registrar@gmail.com', '1234', 1);
 
-CREATE TABLE room_requests (
-    RequestID INT NOT NULL AUTO_INCREMENT,
-    StudentID INT,
-    TeacherID INT,
-    RoomID INT NOT NULL,
-    ActivityName VARCHAR(255) NOT NULL,
-    Purpose TEXT NOT NULL,
-    RequestDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ReservationDate DATETIME NOT NULL,
-    StartTime DATETIME NOT NULL,
-    EndTime DATETIME NOT NULL,
-    NumberOfParticipants INT NOT NULL,
-    Status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-    RejectionReason TEXT,
-    ApprovedBy INT NOT NULL,
-    ApproverFirstName VARCHAR(128) NOT NULL,
-    ApproverLastName VARCHAR(128) NOT NULL,
-    RejectedBy INT NOT NULL,
-    RejecterFirstName VARCHAR(128) NOT NULL,
-    RejecterLastName VARCHAR(128) NOT NULL,
-    PRIMARY KEY (RequestID),
-    FOREIGN KEY (StudentID) REFERENCES student(StudentID) ON DELETE CASCADE,
-    FOREIGN KEY (TeacherID) REFERENCES teacher(TeacherID) ON DELETE CASCADE,
-    FOREIGN KEY (RoomID) REFERENCES rooms(id)
-);
+INSERT INTO `buildings` (`id`, `building_name`, `department`, `number_of_floors`, `created_at`) VALUES
+(1, 'Accountancy Building', 'Accountancy', 4, '2025-05-22 12:05:20'),
+(2, 'Business Administration Complex', 'Business Administration', 5, '2025-05-22 12:05:20'),
+(3, 'Hospitality Management Building', 'Hospitality Management', 3, '2025-05-22 12:05:20'),
+(4, 'Education and Arts Center', 'Education, Arts, and Sciences', 4, '2025-05-22 12:05:20'),
+(5, 'Criminal Justice Building', 'Criminal Justice Education', 3, '2025-05-22 12:05:20'),
+(6, 'Sports Complex', 'Athletics', 1, '2025-08-18 21:17:52');
 
--- Add foreign key constraints (optional, remove if not needed)
--- ALTER TABLE room_requests
--- ADD CONSTRAINT fk_approved_by FOREIGN KEY (ApprovedBy) REFERENCES dept_admin(id) ON DELETE SET NULL,
--- ADD CONSTRAINT fk_rejected_by FOREIGN KEY (RejectedBy) REFERENCES dept_admin(id) ON DELETE SET NULL;
+INSERT INTO system_settings (setting_key, setting_value, updated_at) VALUES
+('room_status_last_check', '2025-03-31 15:47:03', '2025-03-31 07:47:03');
+
+INSERT INTO rooms (room_name, room_type, capacity, building_id) VALUES 
+('ACC-101', 'Classroom', 40, 1),
+('ACC-102', 'Classroom', 40, 1),
+('ACC-103', 'Classroom', 40, 1),
+('ACC-201', 'Classroom', 45, 1),
+('ACC-202', 'Classroom', 40, 1),
+('ACC-301', 'Classroom', 40, 1),
+('ACC-302', 'Classroom', 40, 1),
+('BA-101', 'Classroom', 50, 2),
+('BA-102', 'Classroom', 40, 2),
+('BA-103', 'Classroom', 45, 2),
+('BA-201', 'Classroom', 50, 2),
+('BA-202', 'Classroom', 40, 2),
+('BA-301', 'Classroom', 40, 2),
+('BA-302', 'Classroom', 40, 2),
+('BA-401', 'Classroom', 40, 2),
+('HM-101', 'Classroom', 40, 3),
+('HM-102', 'Classroom', 40, 3),
+('HM-103', 'Classroom', 40, 3),
+('HM-201', 'Classroom', 40, 3),
+('HM-202', 'Classroom', 40, 3),
+('HM-301', 'Classroom', 40, 3),
+('EA-101', 'Classroom', 45, 4),
+('EA-102', 'Classroom', 40, 4),
+('EA-103', 'Classroom', 40, 4),
+('EA-201', 'Classroom', 40, 4),
+('EA-202', 'Classroom', 50, 4),
+('EA-301', 'Classroom', 40, 4),
+('EA-302', 'Classroom', 40, 4),
+('CJ-101', 'Classroom', 40, 5),
+('CJ-102', 'Classroom', 40, 5),
+('CJ-103', 'Classroom', 40, 5),
+('CJ-201', 'Classroom', 45, 5),
+('CJ-202', 'Classroom', 40, 5),
+('CJ-301', 'Classroom', 40, 5),
+('GYM-MAIN', 'Gymnasium', 200, 6);
