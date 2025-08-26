@@ -147,7 +147,7 @@ function loadDashboardData() {
             LEFT JOIN 
                 rooms r ON b.id = r.building_id
             GROUP BY 
-                b.id
+                b.id, b.building_name, b.department
             ORDER BY 
                 room_count DESC
             LIMIT 5";
