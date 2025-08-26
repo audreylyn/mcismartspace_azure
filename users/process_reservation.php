@@ -131,23 +131,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insert reservation request into database based on user role
     if ($userRole === 'Student') {
-        $insertSql = "INSERT INTO room_requests (StudentID, RoomID, ActivityName, Purpose, StartTime, EndTime, NumberOfParticipants, Status, RequestDate) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
+        $insertSql = "INSERT INTO room_requests (
+            StudentID, 
+            RoomID, 
+            ActivityName, 
+            Purpose, 
+            StartTime, 
+            EndTime, 
+            NumberOfParticipants, 
+            Status, 
+            RequestDate,
+            ReservationDate
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?)";
     } else { // Teacher
-        $insertSql = "INSERT INTO room_requests (TeacherID, RoomID, ActivityName, Purpose, StartTime, EndTime, NumberOfParticipants, Status, RequestDate) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
+        $insertSql = "INSERT INTO room_requests (
+            TeacherID, 
+            RoomID, 
+            ActivityName, 
+            Purpose, 
+            StartTime, 
+            EndTime, 
+            NumberOfParticipants, 
+            Status, 
+            RequestDate,
+            ReservationDate
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?)";
     }
 
     $insertStmt = $conn->prepare($insertSql);
     $insertStmt->bind_param(
-        "iissssi",
+        "iissssss",
         $userId,
         $roomId,
         $activityName,
         $purpose,
         $startTimeFormatted,
         $endTimeFormatted,
-        $participants
+        $participants,
+        $reservationDate  // Add the reservation date parameter
     );
 
     if ($insertStmt->execute()) {
