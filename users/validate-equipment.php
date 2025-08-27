@@ -26,8 +26,8 @@ $conn = db();
 // Prepare SQL to find equipment by name and get all its locations
 $sql = "SELECT e.id, e.name, e.description, e.category, r.room_name, b.building_name 
         FROM equipment e
-        LEFT JOIN room_equipment re ON e.id = re.equipment_id
-        LEFT JOIN rooms r ON re.room_id = r.id
+        LEFT JOIN equipment_units eu ON e.id = eu.equipment_id
+        LEFT JOIN rooms r ON eu.room_id = r.id
         LEFT JOIN buildings b ON r.building_id = b.id
         WHERE e.name LIKE ?";
 

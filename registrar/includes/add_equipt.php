@@ -40,34 +40,38 @@ try {
         $room_id = filter_input(INPUT_POST, 'room_id', FILTER_VALIDATE_INT);
         $equipment_id = filter_input(INPUT_POST, 'equipment_id', FILTER_VALIDATE_INT);
         $quantity = filter_input(INPUT_POST, 'quantity', FILTER_VALIDATE_INT);
+        $purchased_at = !empty($_POST['purchased_at']) ? $_POST['purchased_at'] : null;
+        $notes = !empty($_POST['notes']) ? trim($_POST['notes']) : null;
 
         if ($room_id && $equipment_id && $quantity > 0) {
-            $stmt = $conn->prepare("INSERT INTO room_equipment (room_id, equipment_id, quantity) VALUES (?, ?, ?)");
-            $stmt->bind_param("iii", $room_id, $equipment_id, $quantity);
+            for ($i = 1; $i <= $quantity; $i++) {
+                // Generate serial number if not provided
+                $serial = strtoupper("EQ-" . $equipment_id . "-" . $room_id . "-" . uniqid());
 
-            if ($stmt->execute()) {
-                // Add audit record
-                $audit_stmt = $conn->prepare("INSERT INTO equipment_audit (equipment_id, action, notes) VALUES (?, 'Assigned', ?)");
-                $notes = "Assigned to room ID: " . $room_id;
-                $audit_stmt->bind_param("is", $equipment_id, $notes);
-                $audit_stmt->execute();
-                $audit_stmt->close();
-
-                $_SESSION['success_message'] = "Equipment assigned successfully!";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } else {
-                $_SESSION['error_message'] = "Error assigning equipment: " . $stmt->error;
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
+                $stmt = $conn->prepare("INSERT INTO equipment_units (equipment_id, room_id, serial_number, purchased_at, notes) 
+                                        VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("iisss", $equipment_id, $room_id, $serial, $purchased_at, $notes);
+                $stmt->execute();
+                $stmt->close();
             }
-            $stmt->close();
+
+            // Add audit record
+            $audit_stmt = $conn->prepare("INSERT INTO equipment_audit (equipment_id, action, notes) VALUES (?, 'Assigned', ?)");
+            $audit_notes = "Assigned {$quantity} unit(s) to room ID: " . $room_id;
+            $audit_stmt->bind_param("is", $equipment_id, $audit_notes);
+            $audit_stmt->execute();
+            $audit_stmt->close();
+
+            $_SESSION['success_message'] = "Equipment assigned successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         } else {
             $_SESSION['error_message'] = "Invalid assignment data provided.";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         }
     }
+
 
     // Fetch all equipment
     $stmt = $conn->prepare("SELECT id, name, description, category FROM equipment ORDER BY id ASC");

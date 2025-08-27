@@ -168,20 +168,6 @@ CREATE TABLE equipment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create room_equipment table
-CREATE TABLE room_equipment (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    room_id INT NOT NULL,
-    equipment_id INT NOT NULL,
-    quantity INT DEFAULT 1,
-    notes TEXT,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    status ENUM('working', 'needs_repair', 'maintenance', 'missing') DEFAULT 'working',
-    statusCondition ENUM('working', 'needs_repair', 'maintenance', 'missing') DEFAULT 'working',
-    checked BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (room_id) REFERENCES rooms(id),
-    FOREIGN KEY (equipment_id) REFERENCES equipment(id)
-);
 
 CREATE TABLE IF NOT EXISTS equipment_audit (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -239,16 +225,7 @@ CREATE TABLE `equipment_issues` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
--- Insert sample room equipment assignments
-INSERT INTO room_equipment (room_id, equipment_id, quantity) VALUES 
-(3, 1, 20), 
-(3, 2, 20),
-(3, 3, 1),
-(2, 4, 1),
-(2, 5, 1);
 
--- Update existing room_equipment entries
-UPDATE room_equipment SET status = 'working' WHERE status IS NULL;
 
 
 --

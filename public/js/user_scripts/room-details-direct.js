@@ -43,28 +43,59 @@ function showRoomDetailsModal(roomCard) {
           response.equipment &&
           response.equipment.length > 0
         ) {
-          let equipmentHtml = '';
+          // Group equipment by name
+          const equipmentGroups = {};
+          response.equipment.forEach(function(item) {
+            if (!equipmentGroups[item.name]) {
+              equipmentGroups[item.name] = {
+                name: item.name,
+                description: item.description,
+                statuses: {}
+              };
+            }
+            equipmentGroups[item.name].statuses[item.status] = {
+              status: item.status,
+              quantity: parseInt(item.quantity),
+              description: item.description
+            };
+          });
 
-          response.equipment.forEach(function (item) {
-            const statusClass = 'status-' + item.status.toLowerCase();
+          // Generate HTML for grouped equipment
+          let equipmentHtml = '';
+          for (const equipmentName in equipmentGroups) {
+            const equipment = equipmentGroups[equipmentName];
             equipmentHtml += `
               <div class="equipment-item">
-                <div class="name-status">
-                <span class="equipment-name">${item.name}</span>
-                <span class="equipment-status ${statusClass}">${
-              item.status
-            }</span>
-                </div>
-                <div class="equipment-details">
-                ${
-                  item.description
-                    ? `<div class="equipment-description">${item.description}</div>`
-                    : ''
-                }
-                </div>
-              </div>
-            `;
-          });
+                <div class="equipment-header">
+                  <span class="equipment-name">${equipment.name}</span>
+                </div>`;
+            
+            // Show status breakdown
+            for (const status in equipment.statuses) {
+              const statusInfo = equipment.statuses[status];
+              const statusClass = 'status-' + status.toLowerCase().replace(/ /g, '-');
+              const displayStatus = status.replace(/_/g, ' ');
+              
+              equipmentHtml += `
+                <div class="equipment-status-item">
+                  <span class="status-indicator ${statusClass}">${displayStatus}</span>
+                  <span class="quantity">(${statusInfo.quantity})</span>`;
+                  
+              // Add warning icon for non-working equipment
+              if (status !== 'working') {
+                equipmentHtml += `<span class="warning-icon" title="Requires attention"><i class="fa fa-exclamation-triangle"></i></span>`;
+              }
+              
+              equipmentHtml += `</div>`;
+            }
+            
+            // Add description if available
+            if (equipment.description) {
+              equipmentHtml += `<div class="equipment-description">${equipment.description}</div>`;
+            }
+            
+            equipmentHtml += `</div>`;
+          }
 
           $('.equipment-list').html(equipmentHtml);
         } else {

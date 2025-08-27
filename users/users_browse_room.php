@@ -212,7 +212,7 @@ $userId = $_SESSION['user_id'];
                                 <?php
                                 // Start building the query with basic structure
                                 $base_sql = "SELECT r.id, r.room_name, r.room_type, r.capacity, r.RoomStatus, b.id as building_id, b.building_name, 
-                            (SELECT COUNT(*) FROM room_equipment re WHERE re.room_id = r.id) as equipment_count
+                            (SELECT COUNT(*) FROM equipment_units eu WHERE eu.room_id = r.id) as equipment_count
                             FROM rooms r 
                             JOIN buildings b ON r.building_id = b.id";
 
@@ -255,7 +255,7 @@ $userId = $_SESSION['user_id'];
                                 }
 
                                 if ($has_equipment) {
-                                    $where_clauses[] = "(SELECT COUNT(*) FROM room_equipment re WHERE re.room_id = r.id) > 0";
+                                    $where_clauses[] = "(SELECT COUNT(*) FROM equipment_units eu WHERE eu.room_id = r.id) > 0";
                                 }
 
                                 if ($only_available) {

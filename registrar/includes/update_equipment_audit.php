@@ -47,8 +47,8 @@ try {
     $conn->begin_transaction();
 
     try {
-        // Get the equipment_id from room_equipment table first
-        $get_equipment_id = $conn->prepare("SELECT equipment_id FROM room_equipment WHERE id = ?");
+        // Get the equipment_id from equipment_units table first
+        $get_equipment_id = $conn->prepare("SELECT equipment_id FROM equipment_units WHERE unit_id = ?");
         if (!$get_equipment_id) {
             throw new Exception("Prepare failed: " . $conn->error);
         }
@@ -67,12 +67,12 @@ try {
         $get_equipment_id->close();
 
         // Update equipment audit information
-        $stmt = $conn->prepare("UPDATE room_equipment SET notes = ?, status = ?, last_updated = NOW() WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE equipment_units SET status = ?, last_updated = NOW() WHERE unit_id = ?");
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $conn->error);
         }
 
-        $stmt->bind_param("ssi", $notes, $status, $equipment_id);
+        $stmt->bind_param("si", $status, $equipment_id);
 
         if (!$stmt->execute()) {
             throw new Exception("Error updating equipment: " . $stmt->error);
@@ -95,7 +95,7 @@ try {
         }
 
         // Get the updated timestamp
-        $time_stmt = $conn->prepare("SELECT last_updated FROM room_equipment WHERE id = ?");
+        $time_stmt = $conn->prepare("SELECT last_updated FROM equipment_units WHERE unit_id = ?");
         if (!$time_stmt) {
             throw new Exception("Prepare time query failed: " . $conn->error);
         }

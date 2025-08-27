@@ -35,10 +35,14 @@ try {
     // Get equipment for this room
     $equipment = [];
     $equipmentStmt = $conn->prepare("
-        SELECT e.name, re.quantity, re.status, e.description
-        FROM room_equipment re
-        JOIN equipment e ON re.equipment_id = e.id
-        WHERE re.room_id = ?
+        SELECT 
+            e.name, 
+            e.description, 
+            COUNT(eu.unit_id) as quantity
+        FROM equipment_units eu
+        JOIN equipment e ON eu.equipment_id = e.id
+        WHERE eu.room_id = ?
+        GROUP BY e.id, e.name, e.description
     ");
     $equipmentStmt->bind_param("i", $roomId);
     $equipmentStmt->execute();

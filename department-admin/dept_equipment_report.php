@@ -274,21 +274,19 @@ include 'includes/equipment_report.php'
                                         <?php while ($row = $reportsResult->fetch_assoc()): ?>
                                             <tr>
                                                 <td data-label="Reference Number"><span class="reference-number"><?php echo !empty($row['reference_number']) ? htmlspecialchars($row['reference_number']) : 'EQ' . str_pad($row['id'], 6, '0', STR_PAD_LEFT); ?></span></td>
-                                                <td data-label="Equipment"><?php echo htmlspecialchars($row['equipment_name']); ?></td>
+                                                <td data-label="Equipment">
                                                 <td data-label="Location"><?php echo htmlspecialchars($row['room_name'] ?? 'N/A') . ' (' . htmlspecialchars($row['building_name'] ?? 'N/A') . ')'; ?></td>
                                                 <td data-label="Issue Type"><?php echo htmlspecialchars($row['issue_type']); ?></td>
-                                                <td data-label="Reported By">
-                                                    <?php echo htmlspecialchars($row['reporter_name'] ?? 'Unknown'); ?>
-                                                </td>
-                                                <td data-label="Date"><?php echo date('M d, Y', strtotime($row['reported_at'])); ?></td>
+                                                <td data-label="Reported By"><?php echo htmlspecialchars($row['reporter_name'] ?? 'Unknown'); ?></td>
+                                                <td data-label="Date"><?php echo date('M d, Y', strtotime($row['reported_at']) + 8*3600); ?></td>
                                                 <td data-label="Status">
                                                     <span class="status-badge status-<?php echo $row['status']; ?>">
                                                         <?php echo ucfirst(str_replace('_', ' ', $row['status'])); ?>
                                                     </span>
                                                 </td>
                                                 <td data-label="Condition">
-                                                    <span class="condition-badge condition-<?php echo $row['equipment_condition'] ?? 'unknown'; ?>">
-                                                        <?php echo $row['equipment_condition'] ? ucfirst(str_replace('_', ' ', $row['equipment_condition'])) : 'Unknown'; ?>
+                                                    <span class="condition-badge condition-<?php echo $row['statusCondition'] ?? 'unknown'; ?>">
+                                                        <?php echo $row['statusCondition'] ? ucfirst(str_replace('_', ' ', $row['statusCondition'])) : 'Unknown'; ?>
                                                     </span>
                                                 </td>
                                                 <td class="action-buttons">
@@ -300,7 +298,7 @@ include 'includes/equipment_report.php'
                                         <?php endwhile; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="9" class="has-text-centered">No reports found matching your criteria.</td>
+                                            <td colspan="11" class="has-text-centered">No reports found matching your criteria.</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -325,23 +323,17 @@ include 'includes/equipment_report.php'
                                     <div class="detail-section">
                                         <h3 class="section-title">Equipment Information</h3>
                                         <div class="info-group">
-                                            <div class="info-label">Name</div>
-                                            <div class="info-value"><?php echo htmlspecialchars($reportDetail['equipment_name']); ?></div>
+                                            <div class="info-label">Unit ID</div>
+                                            <div class="info-value">#<?php echo $reportDetail['unit_id']; ?></div>
                                         </div>
                                         <div class="info-group">
-                                            <div class="info-label">Location</div>
-                                            <div class="info-value"><?php echo htmlspecialchars($reportDetail['room_name'] ?? 'N/A') . ', ' . htmlspecialchars($reportDetail['building_name'] ?? 'N/A'); ?></div>
+                                            <div class="info-label">Serial Number</div>
+                                            <div class="info-value"><?php echo htmlspecialchars($reportDetail['serial_number'] ?? 'N/A'); ?></div>
                                         </div>
                                         <div class="info-group">
-                                            <div class="info-label">Equipment ID</div>
-                                            <div class="info-value">#<?php echo $reportDetail['equipment_id']; ?></div>
+                                            <div class="info-label">Equipment Created</div>
+                                            <div class="info-value"><?php echo date('F d, Y - h:i A', strtotime($reportDetail['equipment_created_at'] ?? 'N/A') + 8*3600); ?></div>
                                         </div>
-                                    </div>
-
-                                    <div class="detail-section">
-                                        <h3 class="section-title">
-                                            <?php echo $reportDetail['reporter_type'] ?? 'Reporter'; ?> Information
-                                        </h3>
                                         <div class="info-group">
                                             <div class="info-label">Name</div>
                                             <div class="info-value"><?php echo htmlspecialchars($reportDetail['reporter_name'] ?? 'N/A'); ?></div>
@@ -385,19 +377,19 @@ include 'includes/equipment_report.php'
                                         <div class="info-group">
                                             <div class="info-label">Equipment Condition</div>
                                             <div class="info-value">
-                                                <span class="condition-badge condition-<?php echo $reportDetail['equipment_condition'] ?? 'unknown'; ?>">
-                                                    <?php echo $reportDetail['equipment_condition'] ? ucfirst(str_replace('_', ' ', $reportDetail['equipment_condition'])) : 'Unknown'; ?>
+                                                <span class="condition-badge condition-<?php echo $reportDetail['statusCondition'] ?? 'unknown'; ?>">
+                                                    <?php echo $reportDetail['statusCondition'] ? ucfirst(str_replace('_', ' ', $reportDetail['statusCondition'])) : 'Unknown'; ?>
                                                 </span>
                                             </div>
                                         </div>
                                         <div class="info-group">
                                             <div class="info-label">Reported Date</div>
-                                            <div class="info-value"><?php echo date('F d, Y - h:i A', strtotime($reportDetail['reported_at'])); ?></div>
+                                            <div class="info-value"><?php echo date('F d, Y - h:i A', strtotime($reportDetail['reported_at']) + 8*3600); ?></div>
                                         </div>
                                         <?php if ($reportDetail['resolved_at']): ?>
                                             <div class="info-group">
                                                 <div class="info-label">Resolved Date</div>
-                                                <div class="info-value"><?php echo date('F d, Y - h:i A', strtotime($reportDetail['resolved_at'])); ?></div>
+                                                <div class="info-value"><?php echo date('F d, Y - h:i A', strtotime($reportDetail['resolved_at']) + 8*3600); ?></div>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -432,10 +424,10 @@ include 'includes/equipment_report.php'
                                 <div class="form-group">
                                     <label class="form-label">Equipment Condition</label>
                                     <select name="statusCondition" class="form-select">
-                                        <option value="working" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'working' ? 'selected' : ''; ?>>Working</option>
-                                        <option value="needs_repair" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'needs_repair' ? 'selected' : ''; ?>>Needs Repair</option>
-                                        <option value="maintenance" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
-                                        <option value="missing" <?php echo ($reportDetail['equipment_condition'] ?? '') == 'missing' ? 'selected' : ''; ?>>Missing</option>
+                                        <option value="working" <?php echo ($reportDetail['statusCondition'] ?? '') == 'working' ? 'selected' : ''; ?>>Working</option>
+                                        <option value="needs_repair" <?php echo ($reportDetail['statusCondition'] ?? '') == 'needs_repair' ? 'selected' : ''; ?>>Needs Repair</option>
+                                        <option value="maintenance" <?php echo ($reportDetail['statusCondition'] ?? '') == 'maintenance' ? 'selected' : ''; ?>>Maintenance</option>
+                                        <option value="missing" <?php echo ($reportDetail['statusCondition'] ?? '') == 'missing' ? 'selected' : ''; ?>>Missing</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

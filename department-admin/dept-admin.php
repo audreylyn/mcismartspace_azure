@@ -74,9 +74,9 @@ if ($row = $result->fetch_assoc()) {
 // Get equipment count - direct count from equipments in rooms of the department
 $equipment_count = 0;
 $stmt = $conn->prepare("
-    SELECT COUNT(*) as count 
-    FROM room_equipment re
-    JOIN rooms r ON re.room_id = r.id
+    SELECT COUNT(eu.unit_id) as count 
+    FROM equipment_units eu
+    JOIN rooms r ON eu.room_id = r.id
     JOIN buildings b ON r.building_id = b.id
     WHERE b.department = ?
 ");
@@ -128,12 +128,12 @@ while ($row = $result->fetch_assoc()) {
 // Get equipment status statistics
 $equipment_stats = [];
 $stmt = $conn->prepare("
-    SELECT re.status, COUNT(*) as count 
-    FROM room_equipment re
-    JOIN rooms r ON re.room_id = r.id
+    SELECT eu.status, COUNT(*) as count 
+    FROM equipment_units eu
+    JOIN rooms r ON eu.room_id = r.id
     JOIN buildings b ON r.building_id = b.id
     WHERE b.department = ?
-    GROUP BY re.status
+    GROUP BY eu.status
 ");
 $stmt->bind_param("s", $department);
 $stmt->execute();
@@ -147,8 +147,8 @@ $issue_stats = [];
 $stmt = $conn->prepare("
     SELECT ei.status, COUNT(*) as count 
     FROM equipment_issues ei
-    JOIN room_equipment re ON ei.equipment_id = re.equipment_id
-    JOIN rooms r ON re.room_id = r.id
+    JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+    JOIN rooms r ON eu.room_id = r.id
     JOIN buildings b ON r.building_id = b.id
     WHERE b.department = ?
     GROUP BY ei.status
@@ -186,9 +186,9 @@ $recent_issues = [];
 $stmt = $conn->prepare("
     SELECT ei.id, e.name as equipment_name, ei.issue_type, ei.status, ei.reported_at
     FROM equipment_issues ei
-    JOIN equipment e ON ei.equipment_id = e.id
-    JOIN room_equipment re ON ei.equipment_id = re.equipment_id
-    JOIN rooms r ON re.room_id = r.id
+    JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+    JOIN equipment e ON eu.equipment_id = e.id
+    JOIN rooms r ON eu.room_id = r.id
     JOIN buildings b ON r.building_id = b.id
     WHERE b.department = ?
     ORDER BY ei.reported_at DESC
@@ -298,7 +298,8 @@ $stmt = $conn->prepare("
             ELSE 'Unknown' 
         END as user_type
     FROM equipment_issues ei
-    JOIN equipment e ON ei.equipment_id = e.id
+    JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+    JOIN equipment e ON eu.equipment_id = e.id
     LEFT JOIN student s ON ei.student_id = s.StudentID AND s.Department = ?
     LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID AND t.Department = ?
     WHERE (s.StudentID IS NOT NULL OR t.TeacherID IS NOT NULL)
@@ -361,8 +362,8 @@ $stmt = $conn->prepare("
         b.building_name,
         COUNT(ei.id) as issue_count
     FROM equipment_issues ei
-    JOIN room_equipment re ON ei.equipment_id = re.equipment_id
-    JOIN rooms r ON re.room_id = r.id
+    JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+    JOIN rooms r ON eu.room_id = r.id
     JOIN buildings b ON r.building_id = b.id
     WHERE b.department = ?
     GROUP BY r.id, r.room_name, b.building_name

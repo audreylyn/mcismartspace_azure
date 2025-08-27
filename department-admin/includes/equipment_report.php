@@ -24,25 +24,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
         $stmt->bind_param("sssi", $newStatus, $adminResponse, $newStatus, $reportId);
         $stmt->execute();
 
-        // Get the equipment_id from the report
-        $getEquipmentSql = "SELECT equipment_id FROM equipment_issues WHERE id = ?";
-        $equipStmt = $conn->prepare($getEquipmentSql);
-        $equipStmt->bind_param("i", $reportId);
-        $equipStmt->execute();
-        $equipResult = $equipStmt->get_result();
-        $equipData = $equipResult->fetch_assoc();
-        $equipmentId = $equipData['equipment_id'];
+        // Get the unit_id from the report
+        $getUnitSql = "SELECT unit_id FROM equipment_issues WHERE id = ?";
+        $unitStmt = $conn->prepare($getUnitSql);
+        $unitStmt->bind_param("i", $reportId);
+        $unitStmt->execute();
+        $unitResult = $unitStmt->get_result();
+        $unitData = $unitResult->fetch_assoc();
+        $unitId = $unitData['unit_id'];
 
-        // Update the room_equipment table to reflect the new condition
-        $updateEquipSql = "UPDATE room_equipment 
+        // Update the equipment_units table to reflect the new condition
+        $updateEquipSql = "UPDATE equipment_units 
                           SET status = ?, last_updated = NOW() 
-                          WHERE equipment_id = ?";
+                          WHERE unit_id = ?";
         $equipUpdateStmt = $conn->prepare($updateEquipSql);
-        $equipUpdateStmt->bind_param("si", $newCondition, $equipmentId);
+        $equipUpdateStmt->bind_param("si", $newCondition, $unitId);
         $equipUpdateStmt->execute();
 
         // Create audit log entry
-        $auditSql = "INSERT INTO equipment_audit (equipment_id, action, notes) 
+        // First, get the equipment_id from the equipment_units table
+        $getEquipmentIdSql = "SELECT equipment_id FROM equipment_units WHERE unit_id = ?";
+        $equipmentIdStmt = $conn->prepare($getEquipmentIdSql);
+        $equipmentIdStmt->bind_param("i", $unitId);
+        $equipmentIdStmt->execute();
+        $equipmentIdResult = $equipmentIdStmt->get_result();
+        $equipmentIdRow = $equipmentIdResult->fetch_assoc();
+        $equipmentId = $equipmentIdRow['equipment_id'];
+        $equipmentIdStmt->close();
+        
+        $auditSql = "INSERT INTO equipment_audit (equipment_id, action, notes)
                     VALUES (?, CONCAT('Status Updated: ', ?, ' Condition: ', ?), ?)";
         $auditStmt = $conn->prepare($auditSql);
         $auditNotes = "Admin response: " . $adminResponse;
@@ -114,48 +124,42 @@ if (!empty($searchTerm)) {
 $whereClause = !empty($filterConditions) ? "WHERE " . implode(" AND ", $filterConditions) : "";
 
 // Get reports with detailed information
-$reportsSql = "SELECT 
-    ei.*,
-    e.name as equipment_name,
-    r.room_name as room_name,
-    b.building_name as building_name,
-    re.equipment_status as equipment_condition,
-    CASE 
-        WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
-        WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
-    END as reporter_name,
-    CASE
-        WHEN ei.student_id IS NOT NULL THEN 'Student'
-        WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
-    END as reporter_type,
-    s.StudentID, 
-    s.Email as student_email,
-    t.TeacherID, 
-    t.Email as teacher_email
+$reportsSql = "SELECT
+ei.*,
+e.name as equipment_name,
+r.room_name as room_name,
+b.building_name as building_name,
+eu.serial_number as serial_number,
+eu.created_at as equipment_created_at,
+CASE
+    WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
+    WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
+END as reporter_name,
+CASE
+    WHEN ei.student_id IS NOT NULL THEN 'Student'
+    WHEN ei.teacher_id IS NOT NULL THEN 'Teacher'
+END as reporter_type,
+s.StudentID,
+s.Email as student_email,
+t.TeacherID,
+t.Email as teacher_email
 FROM equipment_issues ei
-JOIN equipment e ON ei.equipment_id = e.id
-LEFT JOIN (
-    SELECT 
-        equipment_id, 
-        MIN(room_id) as room_id,
-        MAX(status) as equipment_status
-    FROM room_equipment 
-    GROUP BY equipment_id
-) re ON ei.equipment_id = re.equipment_id
-LEFT JOIN rooms r ON re.room_id = r.id
+LEFT JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+LEFT JOIN equipment e ON eu.equipment_id = e.id
+LEFT JOIN rooms r ON eu.room_id = r.id
 LEFT JOIN buildings b ON r.building_id = b.id
 LEFT JOIN student s ON ei.student_id = s.StudentID
 LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID
 $whereClause
-ORDER BY 
-    CASE 
-        WHEN ei.status = 'pending' THEN 1
-        WHEN ei.status = 'in_progress' THEN 2
-        WHEN ei.status = 'resolved' THEN 3
-        WHEN ei.status = 'rejected' THEN 4
-        ELSE 5
-    END,
-    ei.reported_at DESC";
+ORDER BY
+CASE
+    WHEN ei.status = 'pending' THEN 1
+    WHEN ei.status = 'in_progress' THEN 2
+    WHEN ei.status = 'resolved' THEN 3
+    WHEN ei.status = 'rejected' THEN 4
+    ELSE 5
+END,
+ei.reported_at DESC";
 
 $stmt = $conn->prepare($reportsSql);
 if (!empty($params)) {
@@ -169,13 +173,14 @@ $viewReportId = isset($_GET['view']) ? intval($_GET['view']) : 0;
 $reportDetail = null;
 
 if ($viewReportId > 0) {
-    $detailSql = "SELECT 
+    $detailSql = "SELECT
     ei.*,
     e.name as equipment_name,
-    r.room_name as room_name,
-    b.building_name as building_name,
-    re.equipment_status as equipment_condition,
-    CASE 
+    eu.serial_number,
+    eu.created_at as equipment_created_at,
+    r.room_name,
+    b.building_name,
+    CASE
         WHEN ei.student_id IS NOT NULL THEN CONCAT(s.FirstName, ' ', s.LastName)
         WHEN ei.teacher_id IS NOT NULL THEN CONCAT(t.FirstName, ' ', t.LastName)
     END as reporter_name,
@@ -188,16 +193,9 @@ if ($viewReportId > 0) {
     t.TeacherID,
     t.Email as teacher_email
 FROM equipment_issues ei
-JOIN equipment e ON ei.equipment_id = e.id
-LEFT JOIN (
-    SELECT 
-        equipment_id,
-        MIN(room_id) as room_id,
-        MAX(status) as equipment_status
-    FROM room_equipment 
-    GROUP BY equipment_id
-) re ON ei.equipment_id = re.equipment_id
-LEFT JOIN rooms r ON re.room_id = r.id
+LEFT JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+LEFT JOIN equipment e ON eu.equipment_id = e.id
+LEFT JOIN rooms r ON eu.room_id = r.id
 LEFT JOIN buildings b ON r.building_id = b.id
 LEFT JOIN student s ON ei.student_id = s.StudentID
 LEFT JOIN teacher t ON ei.teacher_id = t.TeacherID

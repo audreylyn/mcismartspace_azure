@@ -25,7 +25,14 @@ try {
     $conn = db();
 
     // Prepare and execute query
-    $stmt = $conn->prepare("SELECT status, notes, last_updated FROM room_equipment WHERE id = ?");
+    $stmt = $conn->prepare("
+        SELECT 
+            eu.status, 
+            eu.last_updated, 
+            (SELECT notes FROM equipment_audit ea WHERE ea.equipment_id = eu.equipment_id ORDER BY ea.audit_timestamp DESC LIMIT 1) as notes
+        FROM equipment_units eu
+        WHERE eu.unit_id = ?
+    ");
     if (!$stmt) {
         throw new Exception("Prepare failed: " . $conn->error);
     }

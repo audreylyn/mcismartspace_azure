@@ -35,62 +35,68 @@ try {
         }
     }
 
-    // Handle form submission for assigning equipment
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['assign_equipment'])) {
         $room_id = filter_input(INPUT_POST, 'room_id', FILTER_VALIDATE_INT);
         $equipment_id = filter_input(INPUT_POST, 'equipment_id', FILTER_VALIDATE_INT);
         $quantity = filter_input(INPUT_POST, 'quantity', FILTER_VALIDATE_INT);
-
+        $serial_number = trim($_POST['serial_number'] ?? ''); // optional input field
+    
         if ($room_id && $equipment_id && $quantity > 0) {
-            // Check if equipment is already assigned
-            $check_stmt = $conn->prepare("SELECT id FROM room_equipment WHERE room_id = ? AND equipment_id = ?");
-            $check_stmt->bind_param("ii", $room_id, $equipment_id);
-            $check_stmt->execute();
-            $check_result = $check_stmt->get_result();
+            $conn->begin_transaction();
+            try {
+                $stmt = $conn->prepare("INSERT INTO equipment_units (equipment_id, room_id, serial_number) VALUES (?, ?, ?)");
 
-            if ($check_result->num_rows > 0) {
-                $_SESSION['error_message'] = "This equipment is already assigned to this room.";
+                for ($i = 0; $i < $quantity; $i++) {
+                    $current_serial_number = '';
+                    if (!empty($serial_number)) {
+                        // Use provided serial as a base and append a number
+                        $current_serial_number = $serial_number . '-' . ($i + 1);
+                    } else {
+                        // Auto-generate a unique serial number if none is provided
+                        $current_serial_number = 'EQ-' . strtoupper(uniqid());
+                    }
+                    
+                    $stmt->bind_param("iis", $equipment_id, $room_id, $current_serial_number);
+                    $stmt->execute();
+                }
+                $stmt->close();
+
+                // Commit the transaction if all units were inserted successfully
+                $conn->commit();
+            } catch (Exception $e) {
+                $conn->rollback();
+                $_SESSION['error_message'] = "An error occurred during assignment: " . $e->getMessage();
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             }
-
-            $stmt = $conn->prepare("INSERT INTO room_equipment (room_id, equipment_id, quantity) VALUES (?, ?, ?)");
-            $stmt->bind_param("iii", $room_id, $equipment_id, $quantity);
-
-            if ($stmt->execute()) {
-                // Add audit record
-                $audit_stmt = $conn->prepare("INSERT INTO equipment_audit (equipment_id, action, notes) VALUES (?, 'Assigned', ?)");
-                $notes = "Assigned to room ID: " . $room_id;
-                $audit_stmt->bind_param("is", $equipment_id, $notes);
-                $audit_stmt->execute();
-                $audit_stmt->close();
-
-                $_SESSION['success_message'] = "Equipment assigned successfully!";
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            } else {
-                $_SESSION['error_message'] = "Error assigning equipment: " . $stmt->error;
-                header("Location: " . $_SERVER['PHP_SELF']);
-                exit();
-            }
-            $stmt->close();
+    
+            // Audit trail
+            $audit_stmt = $conn->prepare("INSERT INTO equipment_audit (equipment_id, action, notes) VALUES (?, 'Assigned', ?)");
+            $notes = "Assigned $quantity unit(s) to room ID: " . $room_id;
+            $audit_stmt->bind_param("is", $equipment_id, $notes);
+            $audit_stmt->execute();
+            $audit_stmt->close();
+    
+            $_SESSION['success_message'] = "Equipment assigned successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         } else {
             $_SESSION['error_message'] = "Invalid assignment data provided.";
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
         }
     }
+    
 
     // Fetch all equipment and their room assignments
-    $sql = "SELECT e.id, e.name, e.description, e.category, 
-            COALESCE(r.room_name, 'Unassigned') as room_name,
-            COALESCE(b.building_name, '') as building_name,
-            COALESCE(re.quantity, 0) as quantity
-            FROM equipment e
-            INNER JOIN room_equipment re ON e.id = re.equipment_id
-            INNER JOIN rooms r ON re.room_id = r.id
-            INNER JOIN buildings b ON r.building_id = b.id
-            ORDER BY e.created_at DESC";
+    $sql = "SELECT eu.unit_id, e.name, e.description, e.category, eu.serial_number, eu.status, eu.created_at,
+       r.room_name, b.building_name
+FROM equipment_units eu
+JOIN equipment e ON eu.equipment_id = e.id
+JOIN rooms r ON eu.room_id = r.id
+JOIN buildings b ON r.building_id = b.id
+ORDER BY eu.unit_id DESC;
+";
 
     $result = $conn->query($sql);
     $equipment_list = $result->fetch_all(MYSQLI_ASSOC);

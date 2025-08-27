@@ -60,7 +60,7 @@ function loadDashboardData() {
         'maintenance' => 0,
         'missing' => 0
     ];
-    $sql = "SELECT status, COUNT(*) as count FROM room_equipment GROUP BY status";
+    $sql = "SELECT status, COUNT(*) as count FROM equipment_units GROUP BY status";
     $result = $conn->query($sql);
     while ($row = $result->fetch_assoc()) {
         $status = strtolower($row['status']);
@@ -118,10 +118,10 @@ function loadDashboardData() {
                 b.department
             FROM 
                 equipment_issues ei
-            JOIN 
-                equipment e ON ei.equipment_id = e.id
             LEFT JOIN 
-                room_equipment re ON ei.equipment_id = re.equipment_id
+                equipment_units re ON ei.unit_id = re.unit_id
+            JOIN 
+                equipment e ON re.equipment_id = e.id
             LEFT JOIN 
                 rooms rm ON re.room_id = rm.id
             LEFT JOIN 

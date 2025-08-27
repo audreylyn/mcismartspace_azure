@@ -78,15 +78,6 @@ checkAccess(['Student', 'Teacher']);
                 <!-- Manual entry content -->
                 <div class="option-content" id="manual-content">
                     <div class="manual-entry-form">
-                        <div class="form-group mb-3">
-                            <label for="equipment-select" class="form-label">Equipment Name</label>
-                            <div class="input-wrapper">
-                                <select class="form-control" id="equipment-select">
-                                    <option value="">-- Select Equipment --</option>
-                                </select>
-                                <div class="validation-feedback" id="equipment-feedback"></div>
-                            </div>
-                        </div>
 
                         <div class="form-group mb-3">
                             <label for="building-select" class="form-label">Building</label>
@@ -109,13 +100,22 @@ checkAccess(['Student', 'Teacher']);
                         </div>
 
                         <div class="form-group mb-3">
+                            <label for="equipment-unit-select" class="form-label">Select Equipment Unit</label>
+                            <div class="input-wrapper">
+                                <select class="form-control" id="equipment-unit-select" disabled>
+                                    <option value="">-- Select Room First --</option>
+                                </select>
+                                <div class="validation-feedback" id="equipment-unit-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
                             <label for="equipment-id" class="form-label">Equipment ID (Optional)</label>
                             <input type="text" class="form-control" id="equipment-id" placeholder="Enter equipment ID if known">
                         </div>
 
                         <!-- Hidden fields to store selected data -->
-                        <input type="hidden" id="selected-equipment-id">
-                        <input type="hidden" id="selected-equipment-name">
+                        <input type="hidden" id="selected-unit-id">
                         <input type="hidden" id="selected-room-name">
                         <input type="hidden" id="selected-building-name">
                     </div>

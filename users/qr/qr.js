@@ -443,117 +443,67 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  // Manual entry form elements - Updated for dropdown functionality
-  const equipmentSelect = document.getElementById('equipment-select');
+  // Manual entry form elements
   const buildingSelect = document.getElementById('building-select');
   const roomSelect = document.getElementById('room-select');
+  const equipmentUnitSelect = document.getElementById('equipment-unit-select');
   const equipmentIdInput = document.getElementById('equipment-id');
   const manualSubmitButton = document.getElementById('manual-submit-button');
 
   // Hidden fields
-  const selectedEquipmentId = document.getElementById('selected-equipment-id');
-  const selectedEquipmentName = document.getElementById(
-    'selected-equipment-name'
-  );
+  const selectedUnitId = document.getElementById('selected-unit-id');
   const selectedRoomName = document.getElementById('selected-room-name');
-  const selectedBuildingName = document.getElementById(
-    'selected-building-name'
-  );
+  const selectedBuildingName = document.getElementById('selected-building-name');
 
   // Load initial data
-  loadEquipmentOptions();
   loadBuildingOptions();
 
-  // Event listeners for cascading dropdowns
-  equipmentSelect.addEventListener('change', function () {
-    const selectedOption = this.options[this.selectedIndex];
-    if (this.value) {
-      selectedEquipmentId.value = this.value;
-      selectedEquipmentName.value = selectedOption.textContent;
-      checkFormValidity();
-    } else {
-      selectedEquipmentId.value = '';
-      selectedEquipmentName.value = '';
-      manualSubmitButton.disabled = true;
-    }
-  });
 
   buildingSelect.addEventListener('change', function () {
     const selectedOption = this.options[this.selectedIndex];
+    // Reset subsequent dropdowns
+    roomSelect.innerHTML = '<option value="">-- Select Building First --</option>';
+    roomSelect.disabled = true;
+    equipmentUnitSelect.innerHTML = '<option value="">-- Select Room First --</option>';
+    equipmentUnitSelect.disabled = true;
+    selectedUnitId.value = '';
+    selectedRoomName.value = '';
+    selectedBuildingName.value = '';
+    manualSubmitButton.disabled = true;
+
     if (this.value) {
       selectedBuildingName.value = selectedOption.textContent;
       loadRoomOptions(this.value);
       roomSelect.disabled = false;
-    } else {
-      selectedBuildingName.value = '';
-      selectedRoomName.value = '';
-      roomSelect.disabled = true;
-      roomSelect.innerHTML =
-        '<option value="">-- Select Building First --</option>';
-      manualSubmitButton.disabled = true;
     }
   });
 
   roomSelect.addEventListener('change', function () {
     const selectedOption = this.options[this.selectedIndex];
+    // Reset subsequent dropdowns
+    equipmentUnitSelect.innerHTML = '<option value="">-- Select Room First --</option>';
+    equipmentUnitSelect.disabled = true;
+    selectedUnitId.value = '';
+    selectedRoomName.value = '';
+    manualSubmitButton.disabled = true;
+
     if (this.value) {
       selectedRoomName.value = selectedOption.textContent;
-      checkFormValidity();
-    } else {
-      selectedRoomName.value = '';
-      manualSubmitButton.disabled = true;
-    }
+      loadEquipmentUnitOptions(this.value);
+      equipmentUnitSelect.disabled = false;
+    } 
   });
 
-  // Load equipment options
-  function loadEquipmentOptions() {
-    equipmentSelect.classList.add('loading');
+  equipmentUnitSelect.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (this.value) {
+          selectedUnitId.value = this.value;
+      } else {
+          selectedUnitId.value = '';
+      }
+      checkFormValidity();
+  });
 
-    fetch('api/get_equipment_data.php?action=equipment')
-      .then((response) => response.json())
-      .then((data) => {
-        equipmentSelect.classList.remove('loading');
-
-        if (data.success) {
-          equipmentSelect.innerHTML =
-            '<option value="">-- Select Equipment --</option>';
-
-          // Group equipment by category
-          const groupedEquipment = {};
-          data.data.forEach((equipment) => {
-            const category = equipment.category || 'Other';
-            if (!groupedEquipment[category]) {
-              groupedEquipment[category] = [];
-            }
-            groupedEquipment[category].push(equipment);
-          });
-
-          // Add grouped options
-          Object.keys(groupedEquipment)
-            .sort()
-            .forEach((category) => {
-              const optgroup = document.createElement('optgroup');
-              optgroup.label = category;
-
-              groupedEquipment[category].forEach((equipment) => {
-                const option = document.createElement('option');
-                option.value = equipment.id;
-                option.textContent = equipment.name;
-                optgroup.appendChild(option);
-              });
-
-              equipmentSelect.appendChild(optgroup);
-            });
-        } else {
-          showError('Failed to load equipment options');
-        }
-      })
-      .catch((error) => {
-        equipmentSelect.classList.remove('loading');
-        console.error('Error loading equipment:', error);
-        showError('Error loading equipment options');
-      });
-  }
 
   // Load building options
   function loadBuildingOptions() {
@@ -593,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch(`api/get_equipment_data.php?action=rooms&building_id=${buildingId}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        if (data.success && data.data.length > 0) {
           roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
 
           data.data.forEach((room) => {
@@ -604,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         } else {
           roomSelect.innerHTML = '<option value="">No rooms available</option>';
-          showError('Failed to load room options');
+          if (!data.success) showError('Failed to load room options');
         }
       })
       .catch((error) => {
@@ -614,113 +564,45 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  // Check if form is valid and enable/disable submit button
-  function checkFormValidity() {
-    const equipmentSelected =
-      equipmentSelect.value && selectedEquipmentName.value;
-    const buildingSelected = buildingSelect.value && selectedBuildingName.value;
-    const roomSelected = roomSelect.value && selectedRoomName.value;
+  // Load equipment unit options based on selected room
+  function loadEquipmentUnitOptions(roomId) {
+    equipmentUnitSelect.innerHTML = '<option value="">Loading units...</option>';
 
-    if (equipmentSelected && buildingSelected && roomSelected) {
-      // Verify that the selected equipment exists in the selected room
-      verifyEquipmentInRoom();
-    } else {
-      manualSubmitButton.disabled = true;
-    }
-  }
-
-  // Verify that the equipment exists in the selected room
-  function verifyEquipmentInRoom() {
-    const equipmentId = selectedEquipmentId.value;
-    const roomId = roomSelect.value;
-
-    if (!equipmentId || !roomId) {
-      manualSubmitButton.disabled = true;
-      return;
-    }
-
-    fetch(
-      `api/get_equipment_data.php?action=equipment_in_room&equipment_id=${equipmentId}&room_id=${roomId}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success && data.exists) {
-          manualSubmitButton.disabled = false;
-          showSuccess('Equipment verified in selected room');
-        } else if (data.success && !data.exists) {
-          manualSubmitButton.disabled = true;
-          showEquipmentNotFoundAlert(data);
+    fetch(`api/get_equipment_units_by_room.php?room_id=${roomId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.units.length > 0) {
+          equipmentUnitSelect.innerHTML = '<option value="">-- Select Equipment Unit --</option>';
+          data.units.forEach(unit => {
+            const option = document.createElement('option');
+            option.value = unit.unit_id;
+            option.textContent = `${unit.equipment_name} (SN: ${unit.serial_number})`;
+            equipmentUnitSelect.appendChild(option);
+          });
         } else {
-          manualSubmitButton.disabled = true;
-          showError('Error verifying equipment location');
+            equipmentUnitSelect.innerHTML = '<option value="">No equipment units in this room</option>';
+            if (!data.success) showError('Failed to load equipment units.');
         }
       })
-      .catch((error) => {
-        console.error('Error verifying equipment:', error);
-        manualSubmitButton.disabled = true;
-        showError('Error verifying equipment location');
+      .catch(error => {
+          equipmentUnitSelect.innerHTML = '<option value="">Error loading units</option>';
+          console.error('Error loading equipment units:', error);
+          showError('Error loading equipment units.');
       });
   }
 
-  // Show equipment not found modal with suggestions
-  function showEquipmentNotFoundAlert(data) {
-    const modal = document.getElementById('equipment-validation-modal');
-    const errorText = document.getElementById('validation-error-text');
-    const alternativesDiv = document.getElementById('validation-alternatives');
-    const noAlternativesDiv = document.getElementById(
-      'validation-no-alternatives'
-    );
-    const alternativesList = document.getElementById('alternatives-list');
+  // Check if form is valid and enable/disable submit button
+  function checkFormValidity() {
+    const buildingSelected = buildingSelect.value && selectedBuildingName.value;
+    const roomSelected = roomSelect.value && selectedRoomName.value;
+    const unitSelected = equipmentUnitSelect.value && selectedUnitId.value;
 
-    // Set error message
-    errorText.textContent = `Equipment "${data.equipment_name}" is not available in ${data.room_name}, ${data.building_name}.`;
-
-    // Clear previous alternatives
-    alternativesList.innerHTML = '';
-
-    if (data.alternatives && data.alternatives.length > 0) {
-      alternativesDiv.style.display = 'block';
-      noAlternativesDiv.style.display = 'none';
-
-      data.alternatives.forEach((alt) => {
-        const altItem = document.createElement('div');
-        altItem.className = 'alternative-item';
-
-        const location = document.createElement('div');
-        location.className = 'alternative-location';
-        location.textContent = `${alt.room_name}, ${alt.building_name}`;
-
-        const status = document.createElement('span');
-        status.className = `alternative-status status-${alt.status.replace(
-          '_',
-          '-'
-        )}`;
-        status.textContent =
-          alt.status === 'working'
-            ? '✓ Working'
-            : `⚠ ${alt.status.replace('_', ' ')}`;
-
-        altItem.appendChild(location);
-        altItem.appendChild(status);
-        alternativesList.appendChild(altItem);
-      });
+    if (buildingSelected && roomSelected && unitSelected) {
+        manualSubmitButton.disabled = false;
     } else {
-      alternativesDiv.style.display = 'none';
-      noAlternativesDiv.style.display = 'block';
+        manualSubmitButton.disabled = true;
     }
-
-    // Show modal
-    modal.style.display = 'flex';
   }
-
-  // Close modal when clicking outside
-  document
-    .getElementById('equipment-validation-modal')
-    .addEventListener('click', function (e) {
-      if (e.target === this) {
-        closeValidationModal();
-      }
-    });
 
   // Show success message
   function showSuccess(message) {
@@ -734,30 +616,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Form submission
   manualSubmitButton.addEventListener('click', function () {
-    if (
-      !selectedEquipmentId.value ||
-      !selectedRoomName.value ||
-      !selectedBuildingName.value
-    ) {
-      alert('Please select equipment, building, and room');
-      return;
-    }
-
-    // Final validation before submission
     if (manualSubmitButton.disabled) {
-      alert(
-        'Please verify that the selected equipment exists in the chosen room before proceeding.'
-      );
+      alert('Please select a building, room, and equipment unit.');
       return;
     }
+    
+    const selectedUnitOption = equipmentUnitSelect.options[equipmentUnitSelect.selectedIndex];
 
     // Store the manually entered equipment data
     const equipmentData = {
-      name: selectedEquipmentName.value,
+      unit_id: selectedUnitId.value,
+      // Pass text content for display on the next page
+      name: selectedUnitOption.textContent,
       room: selectedRoomName.value,
       building: selectedBuildingName.value,
-      equipment_id: selectedEquipmentId.value,
-      user_equipment_id: equipmentIdInput.value || null,
+      // Keep this for the optional manual ID entry
+      user_equipment_id: equipmentIdInput.value || null, 
       source: 'manual_entry',
     };
 

@@ -211,15 +211,13 @@ checkAccess(['Department Admin']);
                                         if (isset($map[$deptLower])) {
                                             $likeDepartment = '%' . $map[$deptLower] . '%';
                                         }
-                                        $sql = "SELECT e.id, e.name, e.description, e.category,
-                                                   r.id as room_id, r.room_name,
-                                                   b.id as building_id, b.building_name
-                                                FROM equipment e
-                                                JOIN room_equipment re ON e.id = re.equipment_id
-                                                JOIN rooms r ON re.room_id = r.id
+                                        $sql = "SELECT eu.unit_id, e.name, r.room_name, b.building_name, eu.serial_number
+                                                FROM equipment_units eu
+                                                JOIN equipment e ON eu.equipment_id = e.id
+                                                JOIN rooms r ON eu.room_id = r.id
                                                 JOIN buildings b ON r.building_id = b.id
                                                 WHERE b.department LIKE ?
-                                                ORDER BY b.building_name, r.room_name, e.name";
+                                                ORDER BY b.building_name, r.room_name, e.name, eu.serial_number";
                                         $stmt = $conn->prepare($sql);
                                         $stmt->bind_param('s', $likeDepartment);
                                         $stmt->execute();
@@ -227,13 +225,15 @@ checkAccess(['Department Admin']);
                                         if ($result && $result->num_rows > 0) {
                                             while ($row = $result->fetch_assoc()) {
                                                 $value = json_encode([
-                                                    'id' => $row['id'],
+                                                    'id' => $row['unit_id'],
                                                     'name' => $row['name'],
                                                     'room' => $row['room_name'],
-                                                    'building' => $row['building_name']
+                                                    'building' => $row['building_name'],
+                                                    'serial' => $row['serial_number']
                                                 ]);
+                                                $serial_display = $row['serial_number'] ? ' (SN: ' . $row['serial_number'] . ')' : '';
                                                 echo '<option value=\'' . htmlspecialchars($value) . '\'>' .
-                                                    htmlspecialchars($row['name'] . ' - ' . $row['room_name'] . ', ' . $row['building_name']) .
+                                                    htmlspecialchars($row['name'] . $serial_display . ' - ' . $row['room_name'] . ', ' . $row['building_name']) .
                                                     '</option>';
                                             }
                                         }

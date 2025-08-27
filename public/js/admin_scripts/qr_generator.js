@@ -53,11 +53,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Create the QR code content - URL with query parameters
     const baseUrl = window.location.origin + '/redirect-equipment-report.php';
-    const qrContent = `${baseUrl}?id=${encodeURIComponent(
+    const qrContent = `${baseUrl}?unit_id=${encodeURIComponent(
       equipmentData.id
     )}&name=${encodeURIComponent(equipmentData.name)}&room=${encodeURIComponent(
       equipmentData.room
-    )}&building=${encodeURIComponent(equipmentData.building)}`;
+    )}&building=${encodeURIComponent(equipmentData.building)}&serial=${encodeURIComponent(
+      equipmentData.serial || ''
+    )}`;
 
     // Display equipment info
     qrInfo.innerHTML = `

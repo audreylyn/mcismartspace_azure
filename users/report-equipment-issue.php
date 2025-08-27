@@ -12,8 +12,9 @@ $userRole = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 
 // Get equipment details from query parameters or sessionStorage
-$equipmentId = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : '';
+$unitId = isset($_GET['unit_id']) ? htmlspecialchars($_GET['unit_id']) : '';
 $equipmentName = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : '';
+$serialNumber = isset($_GET['serial']) ? htmlspecialchars($_GET['serial']) : '';
 $roomName = isset($_GET['room']) ? htmlspecialchars($_GET['room']) : '';
 $buildingName = isset($_GET['building']) ? htmlspecialchars($_GET['building']) : '';
 
@@ -47,11 +48,11 @@ if (!$rejectionColumnExists) {
 }
 
 // Attempt to get equipment ID if not provided but name is available
-if (empty($equipmentId) && !empty($equipmentName) && !empty($roomName)) {
+if (empty($unitId) && !empty($equipmentName) && !empty($roomName)) {
     // Try to find the equipment ID based on name and location
-    $findIdSql = "SELECT e.id FROM equipment e 
-                  JOIN room_equipment re ON e.id = re.equipment_id
-                  JOIN rooms r ON re.room_id = r.id
+    $findIdSql = "SELECT eu.unit_id FROM equipment_units eu
+                  JOIN equipment e ON eu.equipment_id = e.id
+                  JOIN rooms r ON eu.room_id = r.id
                   JOIN buildings b ON r.building_id = b.id
                   WHERE e.name LIKE ? AND r.room_name = ? AND b.building_name = ?
                   LIMIT 1";
@@ -64,7 +65,7 @@ if (empty($equipmentId) && !empty($equipmentName) && !empty($roomName)) {
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $equipmentId = $row['id'];
+        $unitId = $row['unit_id'];
     }
     $stmt->close();
 }
@@ -79,24 +80,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
     $userRole = $_SESSION['role']; // Get user role from session
     $imagePath = null;
     
-    // Get equipment_id from POST data if it exists (for manual entry), otherwise use the one from URL
-    $formEquipmentId = isset($_POST['equipment_id']) ? intval($_POST['equipment_id']) : null;
-    $finalEquipmentId = $formEquipmentId ?: $equipmentId;
+    // Get unit_id from POST data (from sessionStorage), otherwise use the one from URL
+    $formUnitId = isset($_POST['unit_id']) ? intval($_POST['unit_id']) : null;
+    $finalUnitId = $formUnitId ?: $unitId;
 
     // Check if there's already an open report for this equipment
-    $checkReportSql = "SELECT ei.id, ei.status, re.status AS equipment_status 
+    $checkReportSql = "SELECT ei.id, ei.status, eu.status AS equipment_status 
                       FROM equipment_issues ei 
-                      JOIN room_equipment re ON ei.equipment_id = re.equipment_id 
-                      WHERE ei.equipment_id = ? AND (ei.status = 'pending' OR ei.status = 'in_progress')";
+                      JOIN equipment_units eu ON ei.unit_id = eu.unit_id 
+                      WHERE ei.unit_id = ? AND (ei.status = 'pending' OR ei.status = 'in_progress')";
     $checkReportStmt = $conn->prepare($checkReportSql);
-    $checkReportStmt->bind_param("i", $finalEquipmentId);
+    $checkReportStmt->bind_param("i", $finalUnitId);
     $checkReportStmt->execute();
     $reportResult = $checkReportStmt->get_result();
     
     // Check if equipment has non-working status
-    $checkEquipmentSql = "SELECT status FROM room_equipment WHERE equipment_id = ? AND status IN ('needs_repair', 'maintenance', 'missing')";
+    $checkEquipmentSql = "SELECT status FROM equipment_units WHERE unit_id = ? AND status IN ('needs_repair', 'maintenance', 'missing')";
     $checkEquipmentStmt = $conn->prepare($checkEquipmentSql);
-    $checkEquipmentStmt->bind_param("i", $finalEquipmentId);
+    $checkEquipmentStmt->bind_param("i", $finalUnitId);
     $checkEquipmentStmt->execute();
     $equipmentResult = $checkEquipmentStmt->get_result();
     
@@ -176,34 +177,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_report'])) {
         
         // Prepare SQL statement to insert report with image path based on user role
         if ($userRole === 'Student') {
-            $sql = "INSERT INTO equipment_issues (equipment_id, student_id, issue_type, description, image_path, status, reported_at, reference_number) 
-                    VALUES (?, ?, ?, ?, ?, 'pending', NOW(), ?)";
+            $sql = "INSERT INTO equipment_issues (unit_id, student_id, issue_type, description, image_path, status, statusCondition, reported_at, reference_number)
+                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW(), ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iissss", $finalEquipmentId, $userId, $issueType, $description, $imagePath, $referenceNumber);
+            $stmt->bind_param("iisssss", $finalUnitId, $userId, $issueType, $description, $imagePath, $condition, $referenceNumber);
         } else { // Teacher
-            $sql = "INSERT INTO equipment_issues (equipment_id, teacher_id, issue_type, description, image_path, status, reported_at, reference_number) 
-                    VALUES (?, ?, ?, ?, ?, 'pending', NOW(), ?)";
+            $sql = "INSERT INTO equipment_issues (unit_id, teacher_id, issue_type, description, image_path, status, statusCondition, reported_at, reference_number)
+                    VALUES (?, ?, ?, ?, ?, 'pending', ?, NOW(), ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iissss", $finalEquipmentId, $userId, $issueType, $description, $imagePath, $referenceNumber);
+            $stmt->bind_param("iisssss", $finalUnitId, $userId, $issueType, $description, $imagePath, $condition, $referenceNumber);
         }
 
         // Execute the statement
         try {
             if ($stmt->execute()) {
-                // Also update the equipment status in room_equipment table
-                $updateEquipment = "UPDATE room_equipment SET status = ?, last_updated = NOW() 
-                                    WHERE equipment_id = ?";
+                // Also update the equipment status in equipment_units table
+                $updateEquipment = "UPDATE equipment_units SET status = ?, last_updated = NOW()
+                                    WHERE unit_id = ?";
                 $updateStmt = $conn->prepare($updateEquipment);
-                $updateStmt->bind_param("si", $condition, $finalEquipmentId);
+                $updateStmt->bind_param("si", $condition, $finalUnitId);
                 $updateStmt->execute();
 
                 // Create an audit log entry
-                $auditSql = "INSERT INTO equipment_audit (equipment_id, action, notes) 
+                // First, get the equipment_id from the equipment_units table
+                $getEquipmentIdSql = "SELECT equipment_id FROM equipment_units WHERE unit_id = ?";
+                $equipmentIdStmt = $conn->prepare($getEquipmentIdSql);
+                $equipmentIdStmt->bind_param("i", $finalUnitId);
+                $equipmentIdStmt->execute();
+                $equipmentIdResult = $equipmentIdStmt->get_result();
+                $equipmentIdRow = $equipmentIdResult->fetch_assoc();
+                $equipmentId = $equipmentIdRow['equipment_id'];
+                $equipmentIdStmt->close();
+                
+                $auditSql = "INSERT INTO equipment_audit (equipment_id, action, notes)
                             VALUES (?, 'Issue Reported', ?)";
                 $auditStmt = $conn->prepare($auditSql);
                 $roleText = ($userRole === 'Student') ? 'student' : 'teacher';
                 $auditNotes = "Issue reported by $roleText ID: $userId - Type: $issueType";
-                $auditStmt->bind_param("is", $finalEquipmentId, $auditNotes);
+                $auditStmt->bind_param("is", $equipmentId, $auditNotes);
                 $auditStmt->execute();
 
                 // Set success message
@@ -234,7 +245,7 @@ if (!$tableExists) {
     // Create the equipment_issues table
     $createTableSql = "CREATE TABLE IF NOT EXISTS equipment_issues (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        equipment_id INT NOT NULL,
+        unit_id INT NOT NULL,
         student_id INT DEFAULT NULL,
         teacher_id INT DEFAULT NULL,
         issue_type VARCHAR(100) NOT NULL,
@@ -245,7 +256,7 @@ if (!$tableExists) {
         admin_response TEXT DEFAULT NULL,
         reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         resolved_at TIMESTAMP NULL DEFAULT NULL,
-        FOREIGN KEY (equipment_id) REFERENCES equipment(id),
+        FOREIGN KEY (unit_id) REFERENCES equipment_units(unit_id),
         FOREIGN KEY (student_id) REFERENCES student(StudentID) ON DELETE CASCADE,
         FOREIGN KEY (teacher_id) REFERENCES teacher(TeacherID) ON DELETE CASCADE
     )";
@@ -293,8 +304,8 @@ if (!$tableExists) {
                 <div class="card-body">
                     <div class="info-grid">
                         <div class="info-item">
-                            <div class="info-label">Equipment ID</div>
-                            <div class="info-value"><?php echo $equipmentId ?: 'N/A'; ?></div>
+                            <div class="info-label">Equipment Unit ID</div>
+                            <div class="info-value"><?php echo $unitId ?: 'N/A'; ?></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Equipment Type</div>
@@ -373,13 +384,13 @@ if (!$tableExists) {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Check if equipment info is empty and try to load from sessionStorage
-            const equipmentId = '<?php echo $equipmentId; ?>';
+            const unitId = '<?php echo $unitId; ?>';
             const equipmentName = '<?php echo $equipmentName; ?>';
             const roomName = '<?php echo $roomName; ?>';
             const buildingName = '<?php echo $buildingName; ?>';
             
             // If any equipment data is missing, try to load from sessionStorage
-            if (!equipmentId || !equipmentName || !roomName || !buildingName) {
+            if (!unitId || !equipmentName || !roomName || !buildingName) {
                 const scannedEquipment = sessionStorage.getItem('scannedEquipment');
                 if (scannedEquipment) {
                     try {
@@ -388,8 +399,8 @@ if (!$tableExists) {
                         // Update the display elements
                         const infoValues = document.querySelectorAll('.info-value');
                         if (infoValues.length >= 4) {
-                            if (!equipmentId && equipmentData.equipment_id) {
-                                infoValues[0].textContent = equipmentData.equipment_id;
+                            if (!unitId && equipmentData.unit_id) {
+                                infoValues[0].textContent = equipmentData.unit_id;
                             }
                             if (!equipmentName && equipmentData.name) {
                                 infoValues[1].textContent = equipmentData.name;
@@ -404,16 +415,16 @@ if (!$tableExists) {
                         
                         // Store equipment data in hidden inputs for form submission
                         const form = document.querySelector('form');
-                        if (form && equipmentData.equipment_id) {
-                            // Create hidden input for equipment_id if it doesn't exist
-                            let hiddenEquipmentId = form.querySelector('input[name="equipment_id"]');
-                            if (!hiddenEquipmentId) {
-                                hiddenEquipmentId = document.createElement('input');
-                                hiddenEquipmentId.type = 'hidden';
-                                hiddenEquipmentId.name = 'equipment_id';
-                                form.appendChild(hiddenEquipmentId);
+                        if (form && equipmentData.unit_id) {
+                            // Create hidden input for unit_id if it doesn't exist
+                            let hiddenUnitId = form.querySelector('input[name="unit_id"]');
+                            if (!hiddenUnitId) {
+                                hiddenUnitId = document.createElement('input');
+                                hiddenUnitId.type = 'hidden';
+                                hiddenUnitId.name = 'unit_id';
+                                form.appendChild(hiddenUnitId);
                             }
-                            hiddenEquipmentId.value = equipmentData.equipment_id;
+                            hiddenUnitId.value = equipmentData.unit_id;
                         }
                         
                     } catch (e) {

@@ -2,8 +2,8 @@
 .equipment-item {
   border: 1px solid #eee;
   border-radius: 5px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
   background-color: #f9f9f9;
   transition: all 0.2s ease;
 }
@@ -12,9 +12,10 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.name-status {
+.equipment-header {
   display: flex;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .equipment-name {
@@ -22,47 +23,61 @@
   font-size: 16px;
   color: #333;
   display: block;
-  margin-bottom: 8px;
 }
 
-.equipment-details {
+.equipment-status-item {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 3px 0;
 }
 
-.equipment-status {
+.status-indicator {
   padding: 3px 8px;
   border-radius: 28px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
-  margin-bottom: 6px;
-  margin-left: 5px;
+  margin-right: 10px;
 }
 
-.equipment-status.status-working {
+.status-indicator.status-working {
   background-color: #d4edda;
   color: #155724;
 }
 
-.equipment-status.status-needs_repair,
-.equipment-status.status-maintenance {
+.status-indicator.status-needs-repair,
+.status-indicator.status-maintenance {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.equipment-status.status-missing {
+.status-indicator.status-missing {
   background-color: #f8d7da;
   color: #721c24;
 }
 
-/* Equipment quantity styles removed */
+.quantity {
+  font-size: 13px;
+  color: #666;
+  margin-right: 10px;
+}
+
+.warning-icon {
+  color: #ffc107;
+  margin-left: 5px;
+}
+
+.warning-icon i {
+  font-size: 14px;
+}
 
 .equipment-description {
   font-size: 13px;
   color: #666;
   line-height: 1.4;
-  width: 100%;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #eee;
 }
 
 .equipment-loading {

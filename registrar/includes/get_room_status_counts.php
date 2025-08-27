@@ -20,7 +20,7 @@ try {
         SUM(CASE WHEN status = 'maintenance' THEN 1 ELSE 0 END) as maintenance,
         SUM(CASE WHEN status = 'needs_repair' THEN 1 ELSE 0 END) as needs_repair,
         SUM(CASE WHEN status = 'missing' THEN 1 ELSE 0 END) as missing
-        FROM room_equipment 
+        FROM equipment_units 
         WHERE room_id = ?";
 
     $stmt = $conn->prepare($sql);

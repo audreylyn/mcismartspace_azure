@@ -150,19 +150,6 @@ CREATE TABLE equipment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Room Equipment (cleaned)
-CREATE TABLE room_equipment (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  room_id INT NOT NULL,
-  equipment_id INT NOT NULL,
-  quantity INT DEFAULT 1,
-  notes TEXT,
-  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  status ENUM('working', 'needs_repair', 'maintenance', 'missing') DEFAULT 'working',
-  FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-  FOREIGN KEY (equipment_id) REFERENCES equipment(id)
-);
-
 -- Equipment Audit
 CREATE TABLE equipment_audit (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -262,7 +249,6 @@ COMMIT;
 DROP TABLE IF EXISTS `teacher`;
 DROP TABLE IF EXISTS `student`;
 DROP TABLE IF EXISTS `room_requests`;
-DROP TABLE IF EXISTS `room_equipment`;
 DROP TABLE IF EXISTS `equipment_issues`;
 DROP TABLE IF EXISTS `equipment_audit`;
 DROP TABLE IF EXISTS `equipment`;

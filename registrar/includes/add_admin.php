@@ -13,10 +13,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Basic validation
     if (empty($first_name) || empty($last_name) || empty($department) || empty($email) || empty($password)) {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("All fields are required."));
+        header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("All fields are required."));
         exit;
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Invalid email format."));
+        header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("Invalid email format."));
         exit;
     } else {
         // Check for duplicate email
@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($email_count > 0) {
             // Email already exists - redirect with error
-            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Email already exists. Please use a different email."));
+            header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("Email already exists. Please use a different email."));
             exit;
         } else {
             // Prepare statement to prevent SQL injection
@@ -45,12 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Execute the statement
                 if ($stmt->execute()) {
+                    $admin_id = $stmt->insert_id;
                     $stmt->close();
-                    header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&msg=" . urlencode("Administrator added successfully!"));
+                    header('Location: ../reg_add_admin.php?status=success&admin_id=' . $admin_id . '&username=' . $email . '&password=' . $password);
                     exit;
                 } else {
                     $stmt->close();
-                    header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Error: " . htmlspecialchars($stmt->error)));
+                    header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("Error: " . htmlspecialchars($stmt->error)));
                     exit;
                 }
             }
@@ -58,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Redirect to prevent form resubmission on refresh
-    header("Location: " . $_SERVER['PHP_SELF']);
+    header("Location: ../reg_add_admin.php");
     exit;
 }
 
@@ -68,18 +69,18 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     $delete_stmt = $conn->prepare("DELETE FROM dept_admin WHERE AdminID = ?");
 
     if ($delete_stmt === false) {
-        header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Prepare failed: " . htmlspecialchars($conn->error)));
+        header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("Prepare failed: " . htmlspecialchars($conn->error)));
         exit;
     } else {
         $delete_stmt->bind_param("i", $id);
 
         if ($delete_stmt->execute()) {
             $delete_stmt->close();
-            header("Location: " . $_SERVER['PHP_SELF'] . "?status=success&msg=" . urlencode("Administrator deleted successfully!"));
+            header("Location: ../reg_add_admin.php?status=success&msg=" . urlencode("Administrator deleted successfully!"));
             exit;
         } else {
             $delete_stmt->close();
-            header("Location: " . $_SERVER['PHP_SELF'] . "?status=error&msg=" . urlencode("Error deleting admin: " . htmlspecialchars($delete_stmt->error)));
+            header("Location: ../reg_add_admin.php?status=error&msg=" . urlencode("Error deleting admin: " . htmlspecialchars($delete_stmt->error)));
             exit;
         }
     }

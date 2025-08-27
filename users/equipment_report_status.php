@@ -10,11 +10,11 @@ $userRole = $_SESSION['role'];
 $idField = ($userRole === 'Student') ? 'student_id' : 'teacher_id';
 
 // Fetch all equipment reports made by this user
-$sql = "SELECT ei.*, e.name as equipment_name, r.room_name, b.building_name, re.status as equipment_condition 
+$sql = "SELECT ei.*, e.name as equipment_name, r.room_name, b.building_name
         FROM equipment_issues ei
-        JOIN equipment e ON ei.equipment_id = e.id
-        JOIN room_equipment re ON e.id = re.equipment_id
-        JOIN rooms r ON re.room_id = r.id
+        JOIN equipment_units eu ON ei.unit_id = eu.unit_id
+        JOIN equipment e ON eu.equipment_id = e.id
+        JOIN rooms r ON eu.room_id = r.id
         JOIN buildings b ON r.building_id = b.id
         WHERE ei.$idField = ?
         ORDER BY ei.reported_at DESC";
@@ -186,7 +186,7 @@ require_once '../auth/room_status_handler.php';
         <?php else: ?>
             <div class="reports-list">
                 <?php foreach ($reports as $report): ?>
-                    <div class="report-card" data-status="<?php echo $report['status']; ?>" data-condition="<?php echo $report['equipment_condition']; ?>">
+                    <div class="report-card" data-status="<?php echo $report['status']; ?>" data-condition="<?php echo $report['statusCondition']; ?>">
                         <div class="report-card-header">
                             <div class="report-id">
                                 <?php 
@@ -217,11 +217,11 @@ require_once '../auth/room_status_handler.php';
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Condition:</div>
-                                    <div class="info-value"><?php echo ucfirst(str_replace('_', ' ', $report['equipment_condition'])); ?></div>
+                                    <div class="info-value"><?php echo ucfirst(str_replace('_', ' ', $report['statusCondition'])); ?></div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Reported:</div>
-                                    <div class="info-value"><?php echo date('M d, Y h:i A', strtotime($report['reported_at'])); ?></div>
+                                    <div class="info-value"><?php echo date('M d, Y h:i A', strtotime($report['reported_at']) + 8*3600); ?></div>
                                 </div>
                             </div>
                             <a href="javascript:void(0)" class="view-details-btn" onclick="toggleDetails(this, <?php echo $report['id']; ?>)">
@@ -249,7 +249,7 @@ require_once '../auth/room_status_handler.php';
                                     <div class="admin-response">
                                         <p><?php echo nl2br(htmlspecialchars($report['admin_response'])); ?></p>
                                         <?php if (!empty($report['resolved_at'])): ?>
-                                            <div class="response-date">Responded on <?php echo date('M d, Y h:i A', strtotime($report['resolved_at'])); ?></div>
+                                            <div class="response-date">Responded on <?php echo date('M d, Y h:i A', strtotime($report['resolved_at']) + 8*3600); ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -261,7 +261,7 @@ require_once '../auth/room_status_handler.php';
                                     <div class="rejection-reason">
                                         <p><?php echo nl2br(htmlspecialchars($report['rejection_reason'])); ?></p>
                                         <?php if (!empty($report['resolved_at'])): ?>
-                                            <div class="response-date">Rejected on <?php echo date('M d, Y h:i A', strtotime($report['resolved_at'])); ?></div>
+                                            <div class="response-date">Rejected on <?php echo date('M d, Y h:i A', strtotime($report['resolved_at']) + 8*3600); ?></div>
                                         <?php endif; ?>
                                     </div>
                                 </div>

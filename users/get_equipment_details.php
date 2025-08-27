@@ -14,13 +14,20 @@ if (!isset($_GET['room_id']) || !is_numeric($_GET['room_id'])) {
 $roomId = (int)$_GET['room_id'];
 
 try {
-    // Get equipment for this room
+    // Get equipment for this room with status information
     $equipment = [];
     $equipmentStmt = $conn->prepare("
-        SELECT e.name, re.quantity, re.status, e.description, e.category
-        FROM room_equipment re
-        JOIN equipment e ON re.equipment_id = e.id
-        WHERE re.room_id = ?
+        SELECT
+            e.name,
+            e.description,
+            e.category,
+            eu.status,
+            COUNT(eu.unit_id) as quantity
+        FROM equipment_units eu
+        JOIN equipment e ON eu.equipment_id = e.id
+        WHERE eu.room_id = ?
+        GROUP BY e.id, e.name, e.description, e.category, eu.status
+        ORDER BY e.name, eu.status
     ");
     $equipmentStmt->bind_param("i", $roomId);
     $equipmentStmt->execute();

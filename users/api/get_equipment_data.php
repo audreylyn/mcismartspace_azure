@@ -68,12 +68,12 @@ try {
             }
             
             // Check if equipment exists in the specified room
-            $sql = "SELECT re.*, e.name as equipment_name, r.room_name, b.building_name 
-                    FROM room_equipment re
-                    JOIN equipment e ON re.equipment_id = e.id
-                    JOIN rooms r ON re.room_id = r.id
+            $sql = "SELECT eu.*, e.name as equipment_name, r.room_name, b.building_name 
+                    FROM equipment_units eu
+                    JOIN equipment e ON eu.equipment_id = e.id
+                    JOIN rooms r ON eu.room_id = r.id
                     JOIN buildings b ON r.building_id = b.id
-                    WHERE re.room_id = ? AND re.equipment_id = ?";
+                    WHERE eu.room_id = ? AND eu.equipment_id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ii", $room_id, $equipment_id);
             $stmt->execute();
@@ -103,11 +103,12 @@ try {
                 $building_name = $room_data['building_name'] ?? 'Unknown Building';
                 
                 // Find alternative rooms where this equipment is available
-                $alternatives_sql = "SELECT r.room_name, b.building_name, re.quantity, re.status
-                                   FROM room_equipment re
-                                   JOIN rooms r ON re.room_id = r.id
+                $alternatives_sql = "SELECT r.room_name, b.building_name, COUNT(eu.unit_id) as quantity
+                                   FROM equipment_units eu
+                                   JOIN rooms r ON eu.room_id = r.id
                                    JOIN buildings b ON r.building_id = b.id
-                                   WHERE re.equipment_id = ?
+                                   WHERE eu.equipment_id = ?
+                                   GROUP BY r.id, b.id
                                    ORDER BY b.building_name, r.room_name
                                    LIMIT 5";
                 $alt_stmt = $conn->prepare($alternatives_sql);

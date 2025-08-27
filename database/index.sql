@@ -39,10 +39,6 @@ CREATE INDEX idx_roomreq_reservation ON room_requests(ReservationDate);
 CREATE INDEX idx_equipment_name ON equipment(name);
 CREATE INDEX idx_equipment_category ON equipment(category);
 
--- Indexes for room_equipment
-CREATE INDEX idx_roomeq_room ON room_equipment(room_id);
-CREATE INDEX idx_roomeq_equipment ON room_equipment(equipment_id);
-CREATE INDEX idx_roomeq_status ON room_equipment(status);
 
 -- Indexes for equipment_audit
 CREATE INDEX idx_eq_audit_equipment ON equipment_audit(equipment_id);
@@ -66,6 +62,5 @@ CREATE INDEX idx_roomreq_room_date ON room_requests(RoomID, ReservationDate);
 CREATE INDEX idx_roomreq_status_date ON room_requests(Status, ReservationDate);
 
 
-CREATE INDEX idx_roomeq_room_status ON room_equipment(room_id, status);
 
 

@@ -56,12 +56,13 @@ checkAccess(['Registrar']);
                         <table id="assignTable" class="adminTable table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Category</th>
-                                    <th>Room Assignment</th>
-                                    <th>Building</th>
-                                    <th>Quantity</th>
+                                <th>Name</th>
+        <th>Description</th>
+        <th>Category</th>
+        <th>Serial Number</th>
+        <th>Status</th>
+        <th>Room Assignment</th>
+        <th>Building</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -75,9 +76,10 @@ checkAccess(['Registrar']);
                                             <td data-label="Name"><?= htmlspecialchars($equipment['name']) ?></td>
                                             <td data-label="Description"><?= htmlspecialchars($equipment['description']) ?></td>
                                             <td data-label="Category"><?= htmlspecialchars($equipment['category']) ?></td>
-                                            <td data-label="Room"><?= htmlspecialchars($equipment['room_name']) ?></td>
-                                            <td data-label="Building"><?= htmlspecialchars($equipment['building_name']) ?></td>
-                                            <td data-label="Quantity"><?= htmlspecialchars($equipment['quantity']) ?></td>
+                                            <td data-label="Serial_Number"><?= htmlspecialchars($equipment['serial_number'] ?? 'N/A') ?></td>
+                                            <td data-label="Status"><?= htmlspecialchars($equipment['status']) ?></td>
+                                            <td data-label="Room"><?= htmlspecialchars($equipment['room_name'] ?? 'Unassigned') ?></td>
+                                            <td data-label="Building"><?= htmlspecialchars($equipment['building_name'] ?? 'N/A') ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
@@ -118,6 +120,10 @@ checkAccess(['Registrar']);
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                </div>
+                                <div class="control" style="width: 100%; margin-bottom: 1rem;">
+                                    <label class="label">Serial Number (optional):</label>
+                                    <input class="input" type="text" name="serial_number" placeholder="e.g. SN12345">
                                 </div>
                                 <div class="control" style="width: 100%; margin-bottom: 1rem;">
                                     <label class="label">Quantity:</label>

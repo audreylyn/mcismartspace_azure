@@ -114,10 +114,10 @@ $userId = $_SESSION['user_id'];
             <?php
             // Query to get user's room requests
             $sql = "SELECT rr.*, r.room_name, r.room_type, r.capacity, b.building_name,
-                    (SELECT GROUP_CONCAT(e.name SEPARATOR ', ') 
-                     FROM room_equipment re 
-                     JOIN equipment e ON re.equipment_id = e.id 
-                     WHERE re.room_id = r.id) AS equipment_list
+                    (SELECT GROUP_CONCAT(DISTINCT e.name SEPARATOR ', ') 
+                     FROM equipment_units eu 
+                     JOIN equipment e ON eu.equipment_id = e.id 
+                     WHERE eu.room_id = r.id) AS equipment_list
                     FROM room_requests rr 
                     JOIN rooms r ON rr.RoomID = r.id 
                     JOIN buildings b ON r.building_id = b.id 
