@@ -158,12 +158,12 @@
 }
 
 .submit-button {
-  background-color: #4a6fdc;
+  background-color: rgb(41, 114, 45);
   color: white;
 }
 
 .submit-button:hover {
-  background-color: #3a5dba;
+  background-color: rgb(5, 48, 7);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

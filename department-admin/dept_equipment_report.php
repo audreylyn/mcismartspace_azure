@@ -275,6 +275,8 @@ include 'includes/equipment_report.php'
                                             <tr>
                                                 <td data-label="Reference Number"><span class="reference-number"><?php echo !empty($row['reference_number']) ? htmlspecialchars($row['reference_number']) : 'EQ' . str_pad($row['id'], 6, '0', STR_PAD_LEFT); ?></span></td>
                                                 <td data-label="Equipment">
+                                                    <?php echo htmlspecialchars($row['equipment_name'] ?? 'N/A'); ?>
+                                                </td>
                                                 <td data-label="Location"><?php echo htmlspecialchars($row['room_name'] ?? 'N/A') . ' (' . htmlspecialchars($row['building_name'] ?? 'N/A') . ')'; ?></td>
                                                 <td data-label="Issue Type"><?php echo htmlspecialchars($row['issue_type']); ?></td>
                                                 <td data-label="Reported By"><?php echo htmlspecialchars($row['reporter_name'] ?? 'Unknown'); ?></td>

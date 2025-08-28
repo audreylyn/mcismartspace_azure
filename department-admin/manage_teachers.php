@@ -246,7 +246,21 @@ $stmt->close();
     
     <style>
         /* Only unique styles not in external CSS */
-        
+        .import-btn-acc {
+            border-radius: 0 0.3em 0.3em 0;
+            background-color: rgb(41, 114, 45);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .import-btn-acc:hover {
+            background-color: rgb(5, 48, 7);
+        }
+
         /* Enhanced Modal Styles */
         .modal-lg {
             max-width: 800px;
@@ -447,7 +461,7 @@ $stmt->close();
             <div id="tab-add" class="tab-content">
                 <div class="card add-teacher-card">
                     <header class="card-header">
-                        <div class="new-title-container" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="new-title-container" style="width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
                             <p class="new-title"><i class="mdi mdi-account-plus"></i> ADD NEW TEACHER</p>
                             <div style="display: flex; flex-direction: column; align-items: flex-end;">
                                 <form id="importForm" method="post" action="includes/import_teachers.php" enctype="multipart/form-data" style="display: flex;">
@@ -482,7 +496,7 @@ $stmt->close();
                                         </svg>
                                         <input type="file" id="teacherFileInput" name="file" accept=".csv,.xlsx,.xls" style="display: none;" onchange="updateFileName()" />
                                     </button>
-                                    <button id="importButton" type="submit" style="border-radius: 0 0.3em 0.3em 0; background-color: #4a6fdc; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                    <button id="importButton" type="submit" class="import-btn-acc">
                                         <svg
                                             fill="#fff"
                                             xmlns="http://www.w3.org/2000/svg"

@@ -57,12 +57,10 @@ checkAccess(['Registrar']);
                             <thead>
                                 <tr class="titles">
                                 <th>Name</th>
-        <th>Description</th>
-        <th>Category</th>
-        <th>Serial Number</th>
-        <th>Status</th>
-        <th>Room Assignment</th>
-        <th>Building</th>
+                                <th>Serial Number</th>
+                                <th>Status</th>
+                                <th>Room Assignment</th>
+                                <th>Building</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -74,8 +72,6 @@ checkAccess(['Registrar']);
                                     <?php foreach ($equipment_list as $equipment): ?>
                                         <tr>
                                             <td data-label="Name"><?= htmlspecialchars($equipment['name']) ?></td>
-                                            <td data-label="Description"><?= htmlspecialchars($equipment['description']) ?></td>
-                                            <td data-label="Category"><?= htmlspecialchars($equipment['category']) ?></td>
                                             <td data-label="Serial_Number"><?= htmlspecialchars($equipment['serial_number'] ?? 'N/A') ?></td>
                                             <td data-label="Status"><?= htmlspecialchars($equipment['status']) ?></td>
                                             <td data-label="Room"><?= htmlspecialchars($equipment['room_name'] ?? 'Unassigned') ?></td>

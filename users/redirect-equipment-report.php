@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Student', 'Te
 }
 
 // The destination page for reporting equipment issues
-$reportPage = '/users/report-equipment-issue.php';
+$reportPage = 'report-equipment-issue.php';
 
 // Get query parameters from the current URL
 $queryParams = $_SERVER['QUERY_STRING'];

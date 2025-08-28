@@ -56,7 +56,6 @@ checkAccess(['Registrar']);
                         <table id="equipmentTable" class="adminTable table is-fullwidth is-striped">
                             <thead>
                                 <tr class="titles">
-                                    <th>ID</th>
                                     <th>Name</th>
                                     <th>Description</th>
                                     <th>Category</th>
@@ -70,7 +69,6 @@ checkAccess(['Registrar']);
                                 <?php else: ?>
                                     <?php foreach ($equipment_list as $equipment): ?>
                                         <tr>
-                                            <td data-label="ID"><?= htmlspecialchars($equipment['id']) ?></td>
                                             <td data-label="Name"><?= htmlspecialchars($equipment['name']) ?></td>
                                             <td data-label="Description"><?= htmlspecialchars($equipment['description']) ?></td>
                                             <td data-label="Category"><?= htmlspecialchars($equipment['category']) ?></td>

@@ -158,7 +158,7 @@ include "includes/message.php";
                                         </svg>
                                         <input type="file" id="adminFileInput" name="file" accept=".csv,.xlsx,.xls" style="display: none;" onchange="handleFileSelect(this)" />
                                     </button>
-                                    <button id="importButton" type="submit" disabled style="border-radius: 0 0.3em 0.3em 0; background-color: #4a6fdc; color: white; border: none; padding: 0.5rem 1rem; cursor: not-allowed; opacity: 0.5; display: flex; align-items: center; gap: 5px;">
+                                    <button id="importButton" type="submit" disabled style="border-radius: 0 0.3em 0.3em 0; background-color: rgb(41, 114, 45); color: white; border: none; padding: 0.5rem 1rem; cursor: not-allowed; opacity: 0.5; display: flex; align-items: center; gap: 5px;">
                                         <svg
                                             fill="#fff"
                                             xmlns="http://www.w3.org/2000/svg"

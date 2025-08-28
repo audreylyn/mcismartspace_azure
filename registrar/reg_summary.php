@@ -149,7 +149,6 @@ include "includes/add_room.php";
             display: flex;
             align-items: center;
             gap: 5px;
-            background-color: #ffc107;
             border: none;
             color: white;
             padding: 0.5rem;

@@ -96,7 +96,7 @@ function isMenuItemActive($menuItem, $currentPage) {
     <div class="aside-tools">
         <div class="logo">
             <a href="#"><img class="meyclogo" src="../public/assets/logo.webp" alt="logo"></a>
-            <p>MC RMIS</p>
+            <p>MCiSmartSpace</p>
         </div>
     </div>
     <div class="menu is-menu-main">
